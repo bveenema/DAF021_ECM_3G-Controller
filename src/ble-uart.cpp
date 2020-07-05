@@ -9,12 +9,15 @@ BleCharacteristic rxCharacteristic("rx", BleCharacteristicProperty::WRITE_WO_RSP
 void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, void* context) {
     // Log.trace("Received data from: %02X:%02X:%02X:%02X:%02X:%02X:", peer.address()[0], peer.address()[1], peer.address()[2], peer.address()[3], peer.address()[4], peer.address()[5]);
 
-    // Data is sent as a comma seperated variable string formatted as: Ratio,Pressure,Viscosity
+    // Data is sent as a comma seperated variable string formatted as: Ratio,Pressure,Volume
+    /// Ratio: XXX:100 where X is Blue Ratio and 1 is Red ratio
+    /// Pressure: mPSI
+    /// Volume: mGal
     
     // Print Data to Terminal
     char RatioBuffer[16];
     char PressureBuffer[16];
-    char ViscosityBuffer[16];
+    char VolumeBuffer[16];
     uint CurrentVariable = 0;
     uint i = 0;
     for (size_t j = 0; j < len; j++) {
@@ -30,7 +33,7 @@ void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, 
             else if(CurrentVariable == 1) // Pressure
                 PressureBuffer[i+1] = '\0';
             else if(CurrentVariable == 2) // Viscosity
-                ViscosityBuffer[i+1] = '\0';
+                VolumeBuffer[i+1] = '\0';
 
             // reset i
             i = 0;
@@ -48,13 +51,17 @@ void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, 
             else if(CurrentVariable == 1) // Pressure
                 PressureBuffer[i] = data[j];
             else if(CurrentVariable == 2) // Viscosity
-                ViscosityBuffer[i] = data[j];
+                VolumeBuffer[i] = data[j];
+            i += 1; // increment character position
         }
     }
 
-    // ViscosityBuffer[i+1] = '\0';
+    Settings.Ratio = atoi(RatioBuffer);
+    Settings.Pressure = atoi(PressureBuffer);
+    Settings.Volume = atoi(VolumeBuffer);
+    FLAG_SettingsUpdated = true;
 
-    Serial.printlnf("Ratio: %s, Pressure: %s, Viscosity: %s", RatioBuffer, PressureBuffer, ViscosityBuffer);
+    Serial.printlnf("Ratio: %d, Pressure: %d, Volume: %d", Settings.Ratio, Settings.Pressure, Settings.Volume);
     CHIME_BLE_Confirm.setStatus(Active);
 }
 

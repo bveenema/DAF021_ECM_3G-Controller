@@ -33,13 +33,18 @@ extern VDW_ChimeStatus CHIME_BLE_Confirm;
 extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Blue;
 extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Red;
 
-// // Settings
-// extern prom_settings settings;
+// Settings
+struct settings
+{
+    uint Ratio; // XXX:100 Blue:Red
+    uint Pressure; //mPSI
+    uint Volume; //mGal
+    bool valid; // true when settings have been set
+};
 
-// // Button Press Flag
-// extern bool FLAG_ChangeState;
+extern settings Settings;
 
-// // Debugging Variables
-// extern uint32_t debug_incrementer;
+// Flags
+extern bool FLAG_SettingsUpdated;
 
 #endif

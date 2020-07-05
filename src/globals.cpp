@@ -23,11 +23,8 @@ VDW_ChimeStatus CHIME_BLE_Confirm(&Chime, StatusChime_Priority_High, StatusChime
 VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Blue;
 VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Red;
 
-// // Settings
-// prom_settings settings;
+// Settings
+settings Settings{0,0,0,false};
 
-// // Button Press Flag
-// bool FLAG_ChangeState = false;
-
-// // Debugging Variables
-// uint32_t debug_incrementer = 0;
+// Flags
+bool FLAG_SettingsUpdated = false;

@@ -63,8 +63,8 @@ void setup()
 
     // Initialize Modules
     PressureManager.init(&IOEXP2, IO2_AIR_BLUE_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
-    PressureManager.setOffPressure(CONFIG_PumpOffPressure);
-    PressureManager.setOnPressure(CONFIG_PumpOnPressure);
+    PressureManager.setOffPressure(0);
+    PressureManager.setOnPressure(0);
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
     MOTOR_init();
     Chime.init();
@@ -101,6 +101,24 @@ void loop()
     Remote.update();
     Chime.update();
     MOTOR_update();
+
+    // Handle Settings Updated
+    if(FLAG_SettingsUpdated)
+    {
+        if(Settings.Pressure == 18)
+        {
+            PressureManager.setOffPressure(CONFIG_PumpOffPressure_18);
+            PressureManager.setOnPressure(CONFIG_PumpOnPressure_18);
+        }
+        else if(Settings.Pressure == 30)
+        {
+            PressureManager.setOffPressure(CONFIG_PumpOffPressure_30);
+            PressureManager.setOnPressure(CONFIG_PumpOnPressure_30);
+        }
+
+        Settings.valid = true;
+        FLAG_SettingsUpdated = false;
+    }
     
     static uint LastPrintTime = 0;
     if(millis() - LastPrintTime > 1000)
