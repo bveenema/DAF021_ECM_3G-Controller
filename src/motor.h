@@ -50,13 +50,42 @@ enum MotorDriverRegister
     Motor_3_Steps_4_Reg,
 };
 
-// init
-/// Intialize Motor Settings
+enum Direction
+{
+    BACKWARD,
+    FORWARD
+};
+
+/// init
+// Intialize Motor Settings
 void MOTOR_init();
 
-// update
-/// Check on the motor. Call every loop
+/// update
+// Check on the motor. Call every loop
 void MOTOR_update();
 
+// Set Acceleration
+/// Updates the acceleration for the given motor
+/// \param[const uint] motorNum - The motor number to set the acceleration
+/// \param[const int] acceleration - the new acceleration value (steps/sec^2)
+void MOTOR_SetAcceleration(const uint motorNum, const int acceleration);
+
+// Set Speed
+/// Update the speed for the given motor
+/// \param[const uint] motorNum - The motor number to set the acceleration
+/// \param[const int] speed - the new speed value (steps/sec)
+void MOTOR_SetSpeed(const uint motorNum, const int speed);
+
+// Set Target
+/// Update the target for the given motor
+/// \param[const uint] motorNum - The motor number to set the acceleration
+/// \param[const int] target - the new target value (steps)
+void MOTOR_SetTarget(const uint motorNum, const int target);
+
+// Set Direction
+/// Update the direction for the given motor
+/// \param[const uint] motorNum - The motor number to set the acceleration
+/// \param[const Direction] dir - the new direction (BACKWARD/FORWARD)
+void MOTOR_SetDirection(const uint motorNum, const Direction dir);
 
 #endif
