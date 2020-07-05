@@ -33,6 +33,7 @@ void setup()
     digitalWrite(I2C_RESET_PIN, LOW);
     delay(10);
     digitalWrite(I2C_RESET_PIN, HIGH);
+    delay(750); // Allow time for I2C devices to initialize
 
     // Initialize I2C
     Wire.begin();
@@ -65,7 +66,6 @@ void setup()
     PressureManager.setOffPressure(CONFIG_PumpOffPressure);
     PressureManager.setOnPressure(CONFIG_PumpOnPressure);
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
-    delay(500);
     MOTOR_init();
     Chime.init();
 
