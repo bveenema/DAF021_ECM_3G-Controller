@@ -10,15 +10,14 @@
 #include "LiquidSensor.h"
 #include "PressureManager.h"
 #include "rf_remote.h"
+#include "ble-uart.h"
+#include "motor.h"
 
 void setup();
 void loop();
 
 SYSTEM_MODE(MANUAL);
 SYSTEM_THREAD(ENABLED);
-
-SerialLogHandler logHandler;
-
 
 void setup()
 {
@@ -37,6 +36,9 @@ void setup()
 
     // Initialize I2C
     Wire.begin();
+
+    // Initialize BLE
+    BLE_UART_init();
 
     // Initialize I/O Expanders
     IOEXP1.init();
@@ -63,6 +65,8 @@ void setup()
     PressureManager.setOffPressure(CONFIG_PumpOffPressure);
     PressureManager.setOnPressure(CONFIG_PumpOnPressure);
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
+    delay(500);
+    MOTOR_init();
     Chime.init();
 
     // Wait for Pressure Sensor to stabalize, then zero
@@ -82,6 +86,9 @@ void loop()
     IOEXP1.update();
     IOEXP2.update();
 
+    // Update BLE
+    BLE_UART_update();
+
     // Update Sensors
     PailSensor.update();
     LiquidSensor_Blue.update();
@@ -93,6 +100,7 @@ void loop()
     PressureManager.update();
     Remote.update();
     Chime.update();
+    MOTOR_update();
     
     static uint LastPrintTime = 0;
     if(millis() - LastPrintTime > 1000)
@@ -111,53 +119,4 @@ void loop()
 
         LastPrintTime = millis();
     }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // static uint8_t number = 255;
-    // static uint8_t Register = 0;
-    // const uint8_t NumRegisters = 7;
-
-    // Serial.printlnf("Sending Number: %d", number);
-    // Wire.beginTransmission(4);
-    // Wire.write(Register++);
-    // Wire.write(number);
-    // Wire.write(number);
-    // Wire.write(number++);
-    // Wire.endTransmission();
-
-    // if(Register >= NumRegisters) Register = 0;
-
-    // delay(1000);
-
-    // Serial.println("Sending Request");
-    // int NumBytesReceived =  Wire.requestFrom(4,1);
-    // while(Wire.available()) { // loop through all but the last
-	// 	uint8_t c = Wire.read();       // receive byte as a character
-	// 	Serial.println(c);            // print the character
-	// }
-
-    // delay(10000);
 }

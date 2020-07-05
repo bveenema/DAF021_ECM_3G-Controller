@@ -27,6 +27,7 @@ extern VDW_ChimeStatus CHIME_RevLimit;
 extern VDW_ChimeStatus CHIME_LiquidError;
 extern VDW_ChimeStatus CHIME_ChangeMode;
 extern VDW_ChimeStatus CHIME_NoBucket;
+extern VDW_ChimeStatus CHIME_BLE_Confirm;
 
 // Pressure Sensors
 extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Blue;
