@@ -12,6 +12,7 @@
 #include "rf_remote.h"
 #include "ble-uart.h"
 #include "motor.h"
+#include "controller.h"
 
 void setup();
 void loop();
@@ -56,8 +57,6 @@ void setup()
     PailSensor.init();
     LiquidSensor_Blue.init(&IOEXP2, IO2_LIQUID_SENSOR_BLUE);
     LiquidSensor_Red.init(&IOEXP2, IO2_LIQUID_SENSOR_RED);
-    LiquidSensor_Blue.enableDetection();
-    LiquidSensor_Red.enableDetection();
     PressureSensor_Blue.init(PRESSURE_BLUE_PIN, 5000, 0, 3300, 10);
     PressureSensor_Red.init(PRESSURE_RED_PIN, 5000, 0, 3300, 10);
 
@@ -101,6 +100,9 @@ void loop()
     Remote.update();
     Chime.update();
     MOTOR_update();
+
+    // Update Controller
+    do_controller();
 
     // Handle Settings Updated
     if(FLAG_SettingsUpdated)
