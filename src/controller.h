@@ -27,13 +27,6 @@ void state_INIT();
 ///		Require next_state: false
 void state_IDLE();
 
-/// CHARGE
-/// Checks for Air pump to fully charge or timeout
-///		Proceeds To: CALCULATE_FOR_MIX or CALCULATE_FOR_INITIAL_FLUSH depending on MotorMode
-///		ChangeState: Proceed to IDLE
-///		Require next_state: false
-void state_CHARGE();
-
 /// MIX
 /// Calculates distance to move based on Rev Limit. Sets 0 position of motor. Signals start of cycle.
 ///		Proceeds To: RUN_DISTANCE, then SUCK_BACK
@@ -82,13 +75,6 @@ void state_FLUSH_PURGE();
 ///		ChangeState: Proceed to END_CYCLE
 ///		Require next_state: false
 void state_FLUSH_BACK_AND_FORTH();
-
-/// RUN_FOR_DISTANCE
-/// Calls run() functions until distanceToGo returns 0
-///		Proceeds To: PAUSE
-///		ChangeState: Proceed to END_CYLE
-///		Require next_state: true
-void state_RUN_FOR_DISTANCE();
 
 /// END_CYCLE
 /// Sets Start/Stop Chime Active.

@@ -9,7 +9,15 @@ void (*do_controller)() = state_INIT;
 void (*next_state)() = state_IDLE; // Some functions use a "next state" pointer so they may be re-used. The function that calls a function that uses next_state must set the next_state pointer (ex. state_PAUSE)
 
 // LastRunTime is used to determine when a keep open should run and is updated every time a keep open, mix or flush is finished
-unsigned LastRunTime = 0;
+uint LastRunTime = 0;
+// FirstMix is set to true after the first Mix cycle is initiated and allows keep open when set to true
+bool FirstMix = false;
+
+// Flush purge is used for initial and final bolus. FirstFlush tracks which purge should be used.
+bool FirstFlush = true;
+
+// Utility Functions
+void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio);
 
 void state_INIT()
 {
@@ -32,6 +40,10 @@ void state_IDLE()
     // If settings have not been received, do nothing
     if(Settings.valid == false) return;
 
+    // Check if Keep Open should run
+    if(FirstMix && millis() - LastRunTime > CONFIG_KeepOpenInterval)
+        do_controller = state_KEEP_OPEN;
+
 	// Handle ChangeState - state becomes charge
     PressType input = Remote.getStatus();
 	if(input == ShortPress)
@@ -51,6 +63,7 @@ void state_IDLE()
 	}
     else if(input == LongPress)
     {
+        CHIME_StartFlush.setStatus(Active);
         do_controller = state_FLUSH_PURGE;
         LastRunTime = millis();
     }
@@ -62,6 +75,7 @@ void state_IDLE()
 
 void state_MIX()
 {
+    static bool PrevMotorIntPin = false;
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
@@ -69,70 +83,267 @@ void state_MIX()
 	    CHIME_StartStop.setStatus(Active);
 		Serial.println("MIX");
 
-        // Enable Motors
-        Wire.beginTransmission(4);
-        Wire.write(Motor_EN_Reg);
-        Wire.write(0b00000111); // Motor_EN_Reg - Disable all 3 motors
-        Wire.endTransmission();
+        SetupMotors(FORWARD, Settings.Volume, CONFIG_MixRate, Settings.Ratio);
 
-        // Set Directions
-        MOTOR_SetDirection(Blue, FORWARD);
-        MOTOR_SetDirection(Red, FORWARD);
+        // Reset Motor Interrupt Trigger
+        PrevMotorIntPin = HIGH;
 
-        // Set Steps
-        /// Steps = mGal * Cu-in/gal * Steps/Rev / mCu-in/Rev
-        uint TotalSteps = Settings.Volume * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution;
-        uint BlueSteps = TotalSteps * Settings.Ratio / (Settings.Ratio + 100);
-        uint RedSteps = TotalSteps * 100 / (Settings.Ratio + 100);
-
-        Serial.printlnf("Total Steps: %d, Blue Steps: %d, Red Steps: %d", TotalSteps, BlueSteps, RedSteps);
-
-        MOTOR_SetTarget(Blue, BlueSteps);
-        MOTOR_SetTarget(Red, RedSteps);
-
-        // Set Speeds
-        /// Steps/Sec = mGPM * Cu-in/gal * Steps/Rev / mCu-in/Rev / 60
-        uint TotalStepsPerSecond = CONFIG_MilliGallonsPerMintue * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution / 60;
-        uint BlueStepsPerSecond = TotalStepsPerSecond * Settings.Ratio / (Settings.Ratio + 100);
-        uint RedStepsPerSecond = TotalStepsPerSecond * 100 / (Settings.Ratio + 100);
-
-        Serial.printlnf("Total Steps/Sec: %d, Blue Steps/Sec: %d, Red Steps/Sec: %d", TotalStepsPerSecond, BlueStepsPerSecond, RedStepsPerSecond);
-
-        MOTOR_SetSpeed(Blue, BlueStepsPerSecond);
-        MOTOR_SetSpeed(Red, RedStepsPerSecond);
-
-        // Move Motors
-        Wire.beginTransmission(4);
-        Wire.write(Motor_MOVE_Reg);
-        Wire.write(0b00000011);
-        Wire.endTransmission();
+        // Set FirstMix so Keep Open can be run
+        FirstMix = true;
 
 		START_STATE = false;
 	}
 
-    // Monitor MOVE Register for move completion
-    static uint LastMoveRegCheck = 0;
-    if(millis() - LastMoveRegCheck > 1000)
+    // Monitor MOTOR_INT for move completion
+    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
     {
-        if(MOTOR_CheckMoveReg() == 0)
-        {
-            // do_controller = state_SUCK_BACK;
-            do_controller = state_IDLE;
-        }
-        LastMoveRegCheck = millis();
+        do_controller = state_SUCK_BACK;
     }
+    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    
 
     // Exit State Clean-up
 	if(do_controller != state_MIX)
 		START_STATE = true;
 }
 
+void state_SUCK_BACK()
+{
+    static bool PrevMotorIntPin = false;
+	static bool START_STATE = true;
+	if(START_STATE)
+	{
+        // Signal Start of Cycle
+		Serial.println("SUCK BACK");
+
+        SetupMotors(BACKWARD, CONFIG_SuckBackVolume, CONFIG_SuckBackRate, Settings.Ratio);
+
+        // Reset Motor Interrupt Trigger
+        PrevMotorIntPin = HIGH;
+
+		START_STATE = false;
+	}
+
+    // Monitor MOTOR_INT for move completion
+    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    {
+        do_controller = state_END_CYCLE;
+    }
+    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    
+
+    // Exit State Clean-up
+	if(do_controller != state_SUCK_BACK)
+		START_STATE = true;
+}
+
 void state_SHORT_SHOT()
 {
-    do_controller = state_IDLE;
+    static bool PrevMotorIntPin = false;
+	static bool START_STATE = true;
+	if(START_STATE)
+	{
+        // Signal Start of Cycle
+        CHIME_StartStop.setStatus(Active);
+		Serial.println("SHORT SHOT");
+
+        SetupMotors(FORWARD, CONFIG_ShortShotVolume, CONFIG_ShortShotRate, Settings.Ratio);
+
+        // Reset Motor Interrupt Trigger
+        PrevMotorIntPin = HIGH;
+
+		START_STATE = false;
+	}
+
+    // Monitor MOTOR_INT for move completion
+    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    {
+        do_controller = state_END_CYCLE;
+    }
+    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    
+
+    // Exit State Clean-up
+	if(do_controller != state_SHORT_SHOT)
+		START_STATE = true;
+}
+
+void state_KEEP_OPEN()
+{
+    static bool PrevMotorIntPin = false;
+	static bool START_STATE = true;
+	if(START_STATE)
+	{
+        // Signal Start of Cycle
+        CHIME_StartStop.setStatus(Active);
+		Serial.println("SHORT SHOT");
+
+        SetupMotors(FORWARD, CONFIG_KeepOpenVolume, CONFIG_KeepOpenRate, Settings.Ratio);
+
+        // Reset Motor Interrupt Trigger
+        PrevMotorIntPin = HIGH;
+
+		START_STATE = false;
+	}
+
+    // Monitor MOTOR_INT for move completion
+    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    {
+        do_controller = state_END_CYCLE;
+    }
+    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    
+
+    // Exit State Clean-up
+	if(do_controller != state_KEEP_OPEN)
+		START_STATE = true;
 }
 
 void state_FLUSH_PURGE()
 {
+    static bool PrevMotorIntPin = false;
+	static bool START_STATE = true;
+	if(START_STATE)
+	{
+        // Signal Start of Cycle
+		Serial.println("FLUSH_PURGE");
+
+        if(FirstFlush)
+            SetupMotors(FORWARD, CONFIG_FlushFirstBolusVolume, CONFIG_FlushRate, 100);
+        else
+            SetupMotors(FORWARD, CONFIG_FlushFinalBolusVolume, CONFIG_FlushRate, 100);
+
+        // Reset Motor Interrupt Trigger
+        PrevMotorIntPin = HIGH;
+
+ 		START_STATE = false;
+	}
+
+    // Monitor MOTOR_INT for move completion
+    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    {
+        if(FirstFlush)
+        {
+            FirstFlush = false;
+            do_controller = state_FLUSH_BACK_AND_FORTH;
+        }
+        else
+        {
+            FirstFlush = true;
+            do_controller = state_END_CYCLE;
+        }
+        
+        
+    }
+    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    
+
+    // Exit State Clean-up
+	if(do_controller != state_FLUSH_PURGE)
+		START_STATE = true;
+}
+
+void state_FLUSH_BACK_AND_FORTH()
+{
+    static bool PrevMotorIntPin = false;
+	static bool START_STATE = true;
+    static uint CycleCounter = 0;
+    static bool dir = 1; // 0: Backward (Back) 1: Forward (FORTH)
+	if(START_STATE)
+	{
+        // Signal Start of Cycle
+		Serial.printlnf("FLUSH %s: CYCLE: %d", (dir) ? "FORTH" : "BACK", CycleCounter);
+
+        if(dir)
+            SetupMotors(FORWARD, CONFIG_FlushForwardVolume, CONFIG_FlushRate, 100);
+        else
+            SetupMotors(BACKWARD, CONFIG_FlushBackwardVolume, CONFIG_FlushRate, 100);
+
+        // Reset Motor Interrupt Trigger
+        PrevMotorIntPin = HIGH;
+
+ 		START_STATE = false;
+	}
+
+    // Monitor MOTOR_INT for move completion
+    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    {
+        if(dir)
+        {
+            dir = 0;
+            START_STATE = true;
+            delay(CONFIG_FlushPauseTime);
+        }
+        else
+        {
+             if(CycleCounter < CONFIG_FlushBackAndForthCycles)
+            {
+                dir = 1;
+                CycleCounter += 1;
+                START_STATE = true;
+                delay(CONFIG_FlushPauseTime);
+            }
+            else
+            {
+                // Reset Cycle Counter
+                CycleCounter = 0;
+                do_controller = state_FLUSH_PURGE;
+            }
+        }
+    }
+    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    
+
+    // Exit State Clean-up
+	if(do_controller != state_FLUSH_BACK_AND_FORTH)
+		START_STATE = true;
+}
+
+void state_END_CYCLE()
+{
+    Serial.println("END CYCLE");
+    CHIME_StartStop.setStatus(Active);
+    LastRunTime = millis();
     do_controller = state_IDLE;
+}
+
+void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio)
+{
+    // Enable Motors
+    Wire.beginTransmission(4);
+    Wire.write(Motor_EN_Reg);
+    Wire.write(0b00000111); // Motor_EN_Reg - Disable all 3 motors
+    Wire.endTransmission();
+    
+    // Set Directions
+    MOTOR_SetDirection(Blue, Direction);
+    MOTOR_SetDirection(Red, Direction);
+
+    // Set Steps
+    /// Steps = mGal * Cu-in/gal * Steps/Rev / mCu-in/Rev
+    uint TotalSteps = Volume * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution;
+    uint BlueSteps = TotalSteps * Ratio / (Ratio + 100);
+    uint RedSteps = TotalSteps * 100 / (Ratio + 100);
+
+    Serial.printlnf("Total Steps: %d, Blue Steps: %d, Red Steps: %d", TotalSteps, BlueSteps, RedSteps);
+
+    MOTOR_SetTarget(Blue, BlueSteps);
+    MOTOR_SetTarget(Red, RedSteps);
+
+    // Set Speeds
+    /// Steps/Sec = mGPM * Cu-in/gal * Steps/Rev / mCu-in/Rev / 60
+    uint TotalStepsPerSecond = Rate * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution / 60;
+    uint BlueStepsPerSecond = TotalStepsPerSecond * Ratio / (Ratio + 100);
+    uint RedStepsPerSecond = TotalStepsPerSecond * 100 / (Ratio + 100);
+
+    Serial.printlnf("Total Steps/Sec: %d, Blue Steps/Sec: %d, Red Steps/Sec: %d", TotalStepsPerSecond, BlueStepsPerSecond, RedStepsPerSecond);
+
+    MOTOR_SetSpeed(Blue, BlueStepsPerSecond);
+    MOTOR_SetSpeed(Red, RedStepsPerSecond);
+
+    // Move Motors
+    Wire.beginTransmission(4);
+    Wire.write(Motor_MOVE_Reg);
+    Wire.write(0b00000011);
+    Wire.endTransmission();
 }

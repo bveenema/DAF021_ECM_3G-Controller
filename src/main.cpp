@@ -42,6 +42,9 @@ void setup()
     // Initialize BLE
     BLE_UART_init();
 
+    // Initialize Motor INT Pin
+    pinMode(MOTOR_INT_PIN, INPUT);
+
     // Initialize I/O Expanders
     IOEXP1.init();
     IOEXP1.configureInterrupts(1, 0, 1); // Mirror Register A/B, Active Driver Output, Active High

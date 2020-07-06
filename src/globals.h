@@ -25,7 +25,7 @@ extern VDW_StatusChimeTarget Chime;
 extern VDW_ChimeStatus CHIME_StartStop;
 extern VDW_ChimeStatus CHIME_RevLimit;
 extern VDW_ChimeStatus CHIME_LiquidError;
-extern VDW_ChimeStatus CHIME_ChangeMode;
+extern VDW_ChimeStatus CHIME_StartFlush;
 extern VDW_ChimeStatus CHIME_NoBucket;
 extern VDW_ChimeStatus CHIME_BLE_Confirm;
 

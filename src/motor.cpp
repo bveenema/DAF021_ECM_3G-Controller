@@ -30,18 +30,21 @@ void MOTOR_update()
 
 }
 
-void MOTOR_SetAcceleration(const MotorName motorNum, const int acceleration)
+void MOTOR_SetAcceleration(const MotorName motor, const int acceleration)
 {
     // Determine the starting register, motor must be 1,2 or 3, anything else is invalid
 	uint reg = 0;
-	if(motorNum == Blue)
+	if(motor == Blue)
 		reg = Motor_1_Acceleration_1_Reg;
-	else if(motorNum == Red)
+	else if(motor == Red)
 		reg = Motor_2_Acceleration_1_Reg;
-	else if(motorNum == CoBlend)
+	else if(motor == CoBlend)
 		reg = Motor_3_Acceleration_1_Reg;
 	else
-		return;
+    {
+        Serial.println("Bad Motor number");
+        return;
+    }
 
     // Seperate the acceleration into bytes
     char byte1 = (acceleration >> 24) & 255;
@@ -59,18 +62,21 @@ void MOTOR_SetAcceleration(const MotorName motorNum, const int acceleration)
     Wire.endTransmission();
 }
 
-void MOTOR_SetSpeed(const MotorName motorNum, const int speed)
+void MOTOR_SetSpeed(const MotorName motor, const int speed)
 {
     // Determine the starting register, motor must be 1,2 or 3, anything else is invalid
 	uint reg = 0;
-	if(motorNum == Blue)
+	if(motor == Blue)
 		reg = Motor_1_Speed_1_Reg;
-	else if(motorNum == Red)
+	else if(motor == Red)
 		reg = Motor_2_Speed_1_Reg;
-	else if(motorNum == CoBlend)
+	else if(motor == CoBlend)
 		reg = Motor_3_Speed_1_Reg;
 	else
-		return;
+    {
+        Serial.println("Bad Motor number");
+        return;
+    }
 
     // Seperate the speed into bytes
     char byte1 = (speed >> 24) & 255;
@@ -88,18 +94,21 @@ void MOTOR_SetSpeed(const MotorName motorNum, const int speed)
     Wire.endTransmission();
 }
 
-void MOTOR_SetTarget(const MotorName motorNum, const int target)
+void MOTOR_SetTarget(const MotorName motor, const int target)
 {
     // Determine the starting register, motor must be 1,2 or 3, anything else is invalid
 	uint reg = 0;
-	if(motorNum == Blue)
+	if(motor == Blue)
 		reg = Motor_1_Steps_1_Reg;
-	else if(motorNum == Red)
+	else if(motor == Red)
 		reg = Motor_2_Steps_1_Reg;
-	else if(motorNum == COMP_ENABLE_ENABLE_Disabled)
+	else if(motor == CoBlend)
 		reg = Motor_3_Steps_1_Reg;
 	else
-		return;
+    {
+        Serial.println("Bad Motor number");
+        return;
+    }
 
     // Seperate the target into bytes
     char byte1 = (target >> 24) & 255;
@@ -117,18 +126,22 @@ void MOTOR_SetTarget(const MotorName motorNum, const int target)
     Wire.endTransmission();
 }
 
-void MOTOR_SetDirection(const MotorName motorNum, const Direction dir)
+void MOTOR_SetDirection(const MotorName motor, const Direction dir)
 {
     // Determine the bit to update register, motor must be 1,2 or 3, anything else is invalid
 	uint bit = 0;
-	if(motorNum == 1)
+	if(motor == Blue)
 		bit = 0;
-	else if(motorNum == 2)
+	else if(motor == Red)
 		bit = 1;
-	else if(motorNum == 3)
+	else if(motor == CoBlend)
 		bit = 2;
 	else
-		return;
+    {
+        Serial.println("Bad Motor number");
+        return;
+    }
+		
 
     // Get the current direction register
     /// Set the Regsiter Pointer
@@ -143,7 +156,8 @@ void MOTOR_SetDirection(const MotorName motorNum, const Direction dir)
         DirectionRegister = Wire.read();       // receive byte as a character
     }
     Serial.printlnf("Current Direction Register: %d", DirectionRegister);
-    DirectionRegister = DirectionRegister | (dir << bit);
+    bitWrite(DirectionRegister, bit, dir);
+    // DirectionRegister = DirectionRegister | (dir << bit);
     Serial.printlnf("New Direction Register: %d", DirectionRegister);
 
     // Update the Direction Register

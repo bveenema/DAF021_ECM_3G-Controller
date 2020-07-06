@@ -15,7 +15,27 @@
 
 // Volume Settings
 #define CONFIG_MilliCubicInchesPerRevolution 1100 // mCu-in/Rev
-#define CONFIG_MilliGallonsPerMintue 2500 // mGallons/min
+#define CONFIG_SuckBackVolume 50 // mGallons
+#define CONFIG_ShortShotVolume 100 // mGallons
+#define CONFIG_FlushFirstBolusVolume 100 // mGallons
+#define CONFIG_FlushFinalBolusVolume 90 // mGallons
+#define CONFIG_FlushForwardVolume 10 // mGallons
+#define CONFIG_FlushBackwardVolume 7 // mGallons
+
+// Rate Settings
+#define CONFIG_MixRate 1000 // mGallons/min
+#define CONFIG_SuckBackRate 1000 // mGallons/min
+#define CONFIG_ShortShotRate 500 // mGallons/min
+#define CONFIG_FlushRate 500 // mGallons/min
+
+// Flush Settings
+#define CONFIG_FlushBackAndForthCycles 10 // number of complete cyles
+#define CONFIG_FlushPauseTime 0 // ms - Pause between back and forth
+
+// Keep Open Settings
+#define CONFIG_KeepOpenVolume 20 // mGallons
+#define CONFIG_KeepOpenRate 1000 // mGallons/min
+#define CONFIG_KeepOpenInterval 60000 // ms (60000 = 1 minute)
 
 // Motor Settings
 #define CONFIG_StepsPerRev 400 // steps/rev
