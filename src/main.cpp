@@ -64,22 +64,14 @@ void setup()
     PressureSensor_Red.init(PRESSURE_RED_PIN, 5000, 0, 3300, 10);
 
     // Initialize Modules
-    PressureManager.init(&IOEXP2, IO2_AIR_BLUE_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
-    PressureManager.setOffPressure(0);
-    PressureManager.setOnPressure(0);
+    PressureManager.init(&IOEXP2, IO2_AIR_RED_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
     MOTOR_init();
     Chime.init();
 
-    // Wait for Pressure Sensor to stabalize, then zero
-    uint32_t InitialTime = millis();
-    while(millis() - InitialTime < 500)
-    {
-        PressureSensor_Blue.update();
-        PressureSensor_Red.update();
-    }
-    PressureSensor_Blue.zero();
-    PressureSensor_Red.zero();
+    // Enable Liquid Sensors
+    LiquidSensor_Blue.enableDetection();
+    LiquidSensor_Red.enableDetection();
 }
 
 void loop()

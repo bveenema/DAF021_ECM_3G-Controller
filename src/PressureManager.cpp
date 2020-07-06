@@ -28,17 +28,25 @@ void pressureManager::update()
 {
     int32_t pressure = _pBlue->getPressureAverage();
 
-    // Handle Valve
-    if(pressure >= CONFIG_VentOpenPressure)
-        setValve(OPEN);
-    else if(pressure <= CONFIG_VentOpenPressure)
-        setValve(CLOSED);
-
     // Handle Pump
-    if(pressure >= _onPressure)
+    if(Settings.valid)
+    {
+        if(pressure <= _onPressure)
+            setPump(ON);
+        else if(pressure >= _offPressure)
+        {
+            setPump(OFF);
+            _isCharged = true;
+        }
+        if(pressure < CONFIG_MinValidPressure)
+            _isCharged = false;
+    }
+    else
+    {
         setPump(OFF);
-    else if(pressure <= _offPressure)
-        setPump(ON);
+    }
+    
+
 }
 
 // Set new on and off pressures
@@ -59,6 +67,11 @@ int32_t pressureManager::setOffPressure(int32_t pressure)
     _offPressure = pressure;
 
     return _offPressure;
+}
+
+bool pressureManager::charged()
+{
+    return _isCharged;
 }
 
 // Turn Pump on(1) or off(0)

@@ -157,7 +157,6 @@ void MOTOR_SetDirection(const MotorName motor, const Direction dir)
     }
     Serial.printlnf("Current Direction Register: %d", DirectionRegister);
     bitWrite(DirectionRegister, bit, dir);
-    // DirectionRegister = DirectionRegister | (dir << bit);
     Serial.printlnf("New Direction Register: %d", DirectionRegister);
 
     // Update the Direction Register
@@ -183,4 +182,13 @@ bool MOTOR_CheckMoveReg()
     }
 
     return MoveRegister;
+}
+
+void MOTOR_StopAllMotors()
+{
+    // Set the Regsiter Pointer
+    Wire.beginTransmission(MotorControllerAddress);
+    Wire.write(Motor_MOVE_Reg);
+    Wire.write(0);
+    Wire.endTransmission();
 }

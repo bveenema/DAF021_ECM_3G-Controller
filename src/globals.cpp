@@ -12,7 +12,7 @@ void writeIO2(uint8_t pin, bool dir){ IOEXP2.writePin(pin, dir); }
 
 // Chimes
 VDW_StatusChimeTarget Chime(HORN_EN_PIN);
-VDW_ChimeStatus CHIME_StartStop(&Chime, StatusChime_Priority_Med, StatusChime_Pattern_Pulse, StatusChime_Speed_Slow, 3);
+VDW_ChimeStatus CHIME_StartStop(&Chime, StatusChime_Priority_Med, StatusChime_Pattern_Pulse, StatusChime_Speed_Slow, 1);
 VDW_ChimeStatus CHIME_RevLimit(&Chime, StatusChime_Priority_High, StatusChime_Pattern_Pulse, StatusChime_Speed_Fast);
 VDW_ChimeStatus CHIME_LiquidError(&Chime, StatusChime_Priority_High, StatusChime_Pattern_Pulse, StatusChime_Speed_Fast);
 VDW_ChimeStatus CHIME_StartFlush(&Chime, StatusChime_Priority_Med, StatusChime_Pattern_Pulse, 4000, 2000, 1);

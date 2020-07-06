@@ -112,4 +112,8 @@ void MOTOR_SetDirection(const MotorName motorNum, const Direction dir);
 /// Returns false if no motors are moving
 bool MOTOR_CheckMoveReg();
 
+// Stop All Motors
+/// Make all motors stop immediately
+void MOTOR_StopAllMotors();
+
 #endif

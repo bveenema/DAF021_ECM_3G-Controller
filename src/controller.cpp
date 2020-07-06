@@ -3,6 +3,8 @@
 #include "motor.h"
 #include "LiquidSensor.h"
 #include "rf_remote.h"
+#include "PailSensor.h"
+#include "PressureManager.h"
 
 // Define State Machine Pointer
 void (*do_controller)() = state_INIT;
@@ -18,6 +20,7 @@ bool FirstFlush = true;
 
 // Utility Functions
 void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio);
+bool EarlyCancel(bool CheckLiquid);
 
 void state_INIT()
 {
@@ -33,9 +36,12 @@ void state_IDLE()
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
-		Serial.println("IDLE");
+		Serial.println("\nIDLE\n");
 		START_STATE = false;
 	}
+
+    // Always read remote so button presses aren't stored before settings are valid;
+    PressType input = Remote.getStatus();
 
     // If settings have not been received, do nothing
     if(Settings.valid == false) return;
@@ -45,12 +51,13 @@ void state_IDLE()
         do_controller = state_KEEP_OPEN;
 
 	// Handle ChangeState - state becomes charge
-    PressType input = Remote.getStatus();
 	if(input == ShortPress)
 	{
 		// Liquid Sensor detection is disabled until the first button press
-		LiquidSensor_Blue.enableDetection();
-    	LiquidSensor_Red.enableDetection();
+		// LiquidSensor_Blue.enableDetection();
+    	// LiquidSensor_Red.enableDetection();
+
+
 
 		// Run a Short Shot if no liquid is present for a mix
 		if(!LiquidSensor_Blue.hasLiquid() || !LiquidSensor_Red.hasLiquid()) // Check for Liquid presence if MIX mode, ignore for flush
@@ -81,7 +88,7 @@ void state_MIX()
 	{
         // Signal Start of Cycle
 	    CHIME_StartStop.setStatus(Active);
-		Serial.println("MIX");
+		Serial.println("\nMIX\n");
 
         SetupMotors(FORWARD, Settings.Volume, CONFIG_MixRate, Settings.Ratio);
 
@@ -97,10 +104,16 @@ void state_MIX()
     // Monitor MOTOR_INT for move completion
     if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
     {
-        do_controller = state_SUCK_BACK;
+        do_controller = state_END_CYCLE;
     }
     PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
-    
+
+    // Moniter Early Cancel Inputs
+    if(EarlyCancel(true))
+    {
+        MOTOR_StopAllMotors(); 
+        do_controller = state_END_CYCLE;
+    }  
 
     // Exit State Clean-up
 	if(do_controller != state_MIX)
@@ -114,7 +127,7 @@ void state_SUCK_BACK()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-		Serial.println("SUCK BACK");
+		Serial.println("\nSUCK BACK\n");
 
         SetupMotors(BACKWARD, CONFIG_SuckBackVolume, CONFIG_SuckBackRate, Settings.Ratio);
 
@@ -130,6 +143,13 @@ void state_SUCK_BACK()
         do_controller = state_END_CYCLE;
     }
     PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+
+    // Moniter Early Cancel Inputs
+    if(EarlyCancel(false))
+    {
+        MOTOR_StopAllMotors(); 
+        do_controller = state_END_CYCLE;
+    }
     
 
     // Exit State Clean-up
@@ -145,7 +165,7 @@ void state_SHORT_SHOT()
 	{
         // Signal Start of Cycle
         CHIME_StartStop.setStatus(Active);
-		Serial.println("SHORT SHOT");
+		Serial.println("\nSHORT SHOT\n");
 
         SetupMotors(FORWARD, CONFIG_ShortShotVolume, CONFIG_ShortShotRate, Settings.Ratio);
 
@@ -161,6 +181,13 @@ void state_SHORT_SHOT()
         do_controller = state_END_CYCLE;
     }
     PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+
+    // Moniter Early Cancel Inputs
+    if(EarlyCancel(false))
+    {
+        MOTOR_StopAllMotors(); 
+        do_controller = state_END_CYCLE;
+    }
     
 
     // Exit State Clean-up
@@ -176,7 +203,7 @@ void state_KEEP_OPEN()
 	{
         // Signal Start of Cycle
         CHIME_StartStop.setStatus(Active);
-		Serial.println("SHORT SHOT");
+		Serial.println("\nSHORT SHOT\n");
 
         SetupMotors(FORWARD, CONFIG_KeepOpenVolume, CONFIG_KeepOpenRate, Settings.Ratio);
 
@@ -192,6 +219,13 @@ void state_KEEP_OPEN()
         do_controller = state_END_CYCLE;
     }
     PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+
+    // Moniter Early Cancel Inputs
+    if(EarlyCancel(true))
+    {
+        MOTOR_StopAllMotors(); 
+        do_controller = state_END_CYCLE;
+    }
     
 
     // Exit State Clean-up
@@ -206,7 +240,7 @@ void state_FLUSH_PURGE()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-		Serial.println("FLUSH_PURGE");
+		Serial.printlnf("\nFLUSH_PURGE %s\n", (FirstFlush) ? "FIRST" : "FINAL");
 
         if(FirstFlush)
             SetupMotors(FORWARD, CONFIG_FlushFirstBolusVolume, CONFIG_FlushRate, 100);
@@ -236,6 +270,15 @@ void state_FLUSH_PURGE()
         
     }
     PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+
+    // Moniter Early Cancel Inputs
+    if(EarlyCancel(false))
+    {
+        MOTOR_StopAllMotors();
+        FirstFlush = true;
+        do_controller = state_END_CYCLE;
+    }
+         
     
 
     // Exit State Clean-up
@@ -252,7 +295,7 @@ void state_FLUSH_BACK_AND_FORTH()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-		Serial.printlnf("FLUSH %s: CYCLE: %d", (dir) ? "FORTH" : "BACK", CycleCounter);
+		Serial.printlnf("\nFLUSH %s: CYCLE: %d\n", (dir) ? "FORTH" : "BACK", CycleCounter);
 
         if(dir)
             SetupMotors(FORWARD, CONFIG_FlushForwardVolume, CONFIG_FlushRate, 100);
@@ -292,6 +335,16 @@ void state_FLUSH_BACK_AND_FORTH()
         }
     }
     PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+
+    // Moniter Early Cancel Inputs
+    if(EarlyCancel(false))
+    {
+        MOTOR_StopAllMotors();
+        CycleCounter = 0;
+        dir = 1;
+        do_controller = state_END_CYCLE;
+    }
+        
     
 
     // Exit State Clean-up
@@ -301,9 +354,10 @@ void state_FLUSH_BACK_AND_FORTH()
 
 void state_END_CYCLE()
 {
-    Serial.println("END CYCLE");
+    Serial.println("\nEND CYCLE\n");
     CHIME_StartStop.setStatus(Active);
     LastRunTime = millis();
+    FirstFlush = true;
     do_controller = state_IDLE;
 }
 
@@ -346,4 +400,29 @@ void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, 
     Wire.write(Motor_MOVE_Reg);
     Wire.write(0b00000011);
     Wire.endTransmission();
+}
+
+bool EarlyCancel(bool CheckLiquid)
+{
+    if( Remote.getStatus() == ShortPress ||
+        PailSensor.getState() == 0 ||
+        PressureManager.charged() == 0
+      )
+    {
+        
+        Serial.printlnf("EARLY CANCEL NOT LIQUID");
+        return true;
+    }
+    if(CheckLiquid)
+    {
+        if( LiquidSensor_Blue.hasLiquid() == 0 ||
+            LiquidSensor_Red.hasLiquid() == 0
+          )
+        {
+            Serial.printlnf("EARLY CANCEL LIQUID");
+            return true;
+        }
+    }
+
+    return false;
 }

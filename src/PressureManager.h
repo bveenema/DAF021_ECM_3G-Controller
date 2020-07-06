@@ -39,17 +39,26 @@ class pressureManager
         /// \return[int32_t] - the actual pressure set (ranged)
         int32_t setOnPressure(int32_t pressure);
         int32_t setOffPressure(int32_t pressure);
+
+        // Charged
+        /// Returns true if the system is charged
+        /// \return[bool] - true if system is charged
+        bool charged();
+
     private:
         VDW_MCP23017 *_ioExp;
         uint8_t _pumpPin, _valvePin;
         VDW_PressureSensor_Honeywell_HSC_SSC *_pBlue, *_pRed;
         int32_t _onPressure, _offPressure;
+        bool _isCharged = false;
 
         // Turn Pump on(1) or off(0)
         void setPump(bool state);
 
         // Open(1)/Close(0) Valve
         void setValve(bool state);
+
+
 
 };
 
