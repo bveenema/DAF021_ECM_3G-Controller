@@ -5,12 +5,12 @@
 #define CONFIG_PailDetectionThreshold 1200 // ADC Value (out of 4085)
 
 // Pressure Settings
-#define CONFIG_MinValidPressure 500 // mPSI
-#define CONFIG_MaxChargePressure 4000 // mPSI
-#define CONFIG_PumpOnPressure_18 1400 // mPSI 1400
-#define CONFIG_PumpOffPressure_18 1800 // mPSI 1800
-#define CONFIG_PumpOnPressure_30 2500 // mPSI
-#define CONFIG_PumpOffPressure_30 3000 // mPSI
+#define CONFIG_MinValidPressure 0 // mPSI (500)
+#define CONFIG_MaxChargePressure 4000 // mPSI (4000)
+#define CONFIG_PumpOnPressure_18 0 // mPSI (1400)
+#define CONFIG_PumpOffPressure_18 1 // mPSI (1800)
+#define CONFIG_PumpOnPressure_30 2500 // mPSI (2500)
+#define CONFIG_PumpOffPressure_30 3000 // mPSI (3000)
 
 // Volume Settings
 #define CONFIG_MilliCubicInchesPerRevolution 1100 // mCu-in/Rev
@@ -22,7 +22,7 @@
 #define CONFIG_FlushBackwardVolume 10 // mGallons
 
 // Rate Settings
-#define CONFIG_MixRate 1500 // mGallons/min
+#define CONFIG_MixRate 3000 // mGallons/min
 #define CONFIG_SuckBackRate 1000 // mGallons/min
 #define CONFIG_ShortShotRate 1500 // mGallons/min
 #define CONFIG_FlushRate 820 // mGallons/min
