@@ -34,12 +34,14 @@ extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Blue;
 extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Red;
 
 // Settings
+const uint32_t SettingsAddr = 0x00;
 struct settings
 {
-    uint Ratio; // XXX:100 Blue:Red
-    uint Pressure; //mPSI
-    uint Volume; //mGal
-    bool valid; // true when settings have been set
+    uint version = 1;
+    uint Ratio = 0; // XXX:100 Blue:Red
+    uint Pressure = 0; //mPSI
+    uint Volume = 0; //mGal
+    bool valid = false; // true when settings have been set
 };
 
 extern settings Settings;

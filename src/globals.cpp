@@ -24,7 +24,7 @@ VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Blue;
 VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Red;
 
 // Settings
-settings Settings{0,0,0,false};
+settings Settings;
 
 // Flags
 bool FLAG_SettingsUpdated = false;

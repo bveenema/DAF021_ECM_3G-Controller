@@ -23,7 +23,13 @@ SYSTEM_THREAD(ENABLED);
 void setup()
 {
     Serial.begin(57000);
-    Serial.println("Begin Program");
+    delay(1000);
+
+    // Get Settings from memory
+    settings TempSettings;
+    EEPROM.get(SettingsAddr, TempSettings);
+    if(TempSettings.version == Settings.version) // Test version matching
+        Settings = TempSettings;
 
     // Initialize Pins
     pinMode(I2C_RESET_PIN, OUTPUT);
@@ -62,6 +68,19 @@ void setup()
     LiquidSensor_Red.init(&IOEXP2, IO2_LIQUID_SENSOR_RED);
     PressureSensor_Blue.init(PRESSURE_BLUE_PIN, 5000, 0, 3300, 10);
     PressureSensor_Red.init(PRESSURE_RED_PIN, 5000, 0, 3300, 10);
+    if(Settings.valid)
+    {
+        if(Settings.Pressure == 18)
+        {
+            PressureManager.setOffPressure(CONFIG_PumpOffPressure_18);
+            PressureManager.setOnPressure(CONFIG_PumpOnPressure_18);
+        }
+        else if(Settings.Pressure == 30)
+        {
+            PressureManager.setOffPressure(CONFIG_PumpOffPressure_30);
+            PressureManager.setOnPressure(CONFIG_PumpOnPressure_30);
+        }
+    }
 
     // Initialize Modules
     PressureManager.init(&IOEXP2, IO2_AIR_RED_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
@@ -114,6 +133,8 @@ void loop()
         }
 
         Settings.valid = true;
+        EEPROM.put(SettingsAddr, Settings);
+
         FLAG_SettingsUpdated = false;
     }
     
