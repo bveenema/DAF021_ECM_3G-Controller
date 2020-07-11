@@ -1,12 +1,12 @@
-[submodule "lib\\VDW_MCP23017"]
-	path = lib\\VDW_MCP23017
+[submodule "lib/VDW_MCP23017"]
+	path = lib/VDW_MCP23017
 	url = https://github.com/bveenema/VDW_MCP23017.git
 	branch = master
-[submodule "lib\\VDW_StatusChime"]
-	path = lib\\VDW_StatusChime
+[submodule "lib/VDW_StatusChime"]
+	path = lib/VDW_StatusChime
 	url = https://github.com/bveenema/VDW_StatusChime.git
 	branch = master
-[submodule "lib\\VDW_PressureSensor_HoneyWell_HSC_SSC"]
-	path = lib\\VDW_PressureSensor_HoneyWell_HSC_SSC
+[submodule "lib/VDW_PressureSensor_HoneyWell_HSC_SSC"]
+	path = lib/VDW_PressureSensor_HoneyWell_HSC_SSC
 	url = https://github.com/bveenema/VDW_PressureSensor_HoneyWell_HSC_SSC.git
 	branch = master
