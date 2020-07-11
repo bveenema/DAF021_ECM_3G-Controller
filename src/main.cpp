@@ -28,7 +28,7 @@ void setup()
     // Get Settings from memory
     settings TempSettings;
     EEPROM.get(SettingsAddr, TempSettings);
-    if(TempSettings.version == Settings.version) // Test version matching
+    if(TempSettings.version == Settings.version) // Make sure version in EEPROM is same as current version
         Settings = TempSettings;
 
     // Initialize Pins
@@ -68,6 +68,9 @@ void setup()
     LiquidSensor_Red.init(&IOEXP2, IO2_LIQUID_SENSOR_RED);
     PressureSensor_Blue.init(PRESSURE_BLUE_PIN, 5000, 0, 3300, 10);
     PressureSensor_Red.init(PRESSURE_RED_PIN, 5000, 0, 3300, 10);
+
+    // Initialize Modules
+    PressureManager.init(&IOEXP2, IO2_AIR_RED_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
     if(Settings.valid)
     {
         if(Settings.Pressure == 18)
@@ -81,9 +84,6 @@ void setup()
             PressureManager.setOnPressure(CONFIG_PumpOnPressure_30);
         }
     }
-
-    // Initialize Modules
-    PressureManager.init(&IOEXP2, IO2_AIR_RED_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
     MOTOR_init();
     Chime.init();
