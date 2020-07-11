@@ -63,6 +63,13 @@ enum MotorName
     CoBlend,
 };
 
+enum MotorInterruptReason
+{
+    NoInterrupt,
+    MoveCompleted,
+    PositionError
+};
+
 #ifndef bitRead
     #define bitRead(value, bit) (((value) >> (bit)) & 0x01)
 #endif
@@ -76,13 +83,16 @@ enum MotorName
     #define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 #endif
 
-/// init
-// Intialize Motor Settings
+// Init
+/// Intialize Motor Settings
 void MOTOR_init();
 
-/// update
-// Check on the motor. Call every loop
-void MOTOR_update();
+// Monitor
+/// Monitor the interrupt pin. Interrogate for move completion or error.
+/// reset should be set to true the first time (only) when a new move is initiated.
+/// \param[const bool] reset - resets the trigger for rising edge interrupt.
+/// \return[MotorInerruptReason] - The reason the interrupt pin was triggered
+MotorInterruptReason MOTOR_Monitor(const bool reset = false);
 
 // Set Acceleration
 /// Updates the acceleration for the given motor

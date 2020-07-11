@@ -113,7 +113,6 @@ void loop()
     PressureManager.update();
     Remote.update();
     Chime.update();
-    MOTOR_update();
 
     // Update Controller
     do_controller();

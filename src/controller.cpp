@@ -53,13 +53,7 @@ void state_IDLE()
 	// Handle ChangeState - state becomes charge
 	if(input == ShortPress)
 	{
-		// Liquid Sensor detection is disabled until the first button press
-		// LiquidSensor_Blue.enableDetection();
-    	// LiquidSensor_Red.enableDetection();
-
-
-
-		// Run a Short Shot if no liquid is present for a mix
+        // Run a Short Shot if no liquid is present for a mix
 		if(!LiquidSensor_Blue.hasLiquid() || !LiquidSensor_Red.hasLiquid()) // Check for Liquid presence if MIX mode, ignore for flush
 			do_controller = state_SHORT_SHOT;
 		else
@@ -82,7 +76,6 @@ void state_IDLE()
 
 void state_MIX()
 {
-    static bool PrevMotorIntPin = false;
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
@@ -93,7 +86,7 @@ void state_MIX()
         SetupMotors(FORWARD, Settings.Volume, CONFIG_MixRate, Settings.Ratio);
 
         // Reset Motor Interrupt Trigger
-        PrevMotorIntPin = HIGH;
+        MOTOR_Monitor(true);
 
         // Set FirstMix so Keep Open can be run
         FirstMix = true;
@@ -101,12 +94,26 @@ void state_MIX()
 		START_STATE = false;
 	}
 
-    // Monitor MOTOR_INT for move completion
-    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    // Monitor Motor for move completion
+    MotorInterruptReason InterruptReason = MOTOR_Monitor();
+    if(InterruptReason == MoveCompleted)
     {
         do_controller = state_END_CYCLE;
     }
-    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    else if(InterruptReason == PositionError)
+    {
+        Serial.println("MIX RATIO ERROR");
+
+        MOTOR_StopAllMotors();
+
+        // Disable Motors
+        Wire.beginTransmission(4);
+        Wire.write(Motor_EN_Reg);
+        Wire.write(0b00000000); // Motor_EN_Reg - Disable all 3 motors
+        Wire.endTransmission();
+
+        do_controller = state_END_CYCLE;
+    }
 
     // Moniter Early Cancel Inputs
     if(EarlyCancel(true))
@@ -122,7 +129,6 @@ void state_MIX()
 
 void state_SUCK_BACK()
 {
-    static bool PrevMotorIntPin = false;
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
@@ -132,17 +138,17 @@ void state_SUCK_BACK()
         SetupMotors(BACKWARD, CONFIG_SuckBackVolume, CONFIG_SuckBackRate, Settings.Ratio);
 
         // Reset Motor Interrupt Trigger
-        PrevMotorIntPin = HIGH;
+        MOTOR_Monitor(true);
 
 		START_STATE = false;
 	}
 
-    // Monitor MOTOR_INT for move completion
-    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    // Monitor Motor for move completion
+    MotorInterruptReason InterruptReason = MOTOR_Monitor();
+    if(InterruptReason == MoveCompleted)
     {
         do_controller = state_END_CYCLE;
     }
-    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
 
     // Moniter Early Cancel Inputs
     if(EarlyCancel(false))
@@ -159,7 +165,6 @@ void state_SUCK_BACK()
 
 void state_SHORT_SHOT()
 {
-    static bool PrevMotorIntPin = false;
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
@@ -170,17 +175,17 @@ void state_SHORT_SHOT()
         SetupMotors(FORWARD, CONFIG_ShortShotVolume, CONFIG_ShortShotRate, Settings.Ratio);
 
         // Reset Motor Interrupt Trigger
-        PrevMotorIntPin = HIGH;
+        MOTOR_Monitor(true);
 
 		START_STATE = false;
 	}
 
-    // Monitor MOTOR_INT for move completion
-    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    // Monitor Motor for move completion
+    MotorInterruptReason InterruptReason = MOTOR_Monitor();
+    if(InterruptReason == MoveCompleted)
     {
         do_controller = state_END_CYCLE;
     }
-    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
 
     // Moniter Early Cancel Inputs
     if(EarlyCancel(false))
@@ -197,7 +202,6 @@ void state_SHORT_SHOT()
 
 void state_KEEP_OPEN()
 {
-    static bool PrevMotorIntPin = false;
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
@@ -208,17 +212,17 @@ void state_KEEP_OPEN()
         SetupMotors(FORWARD, CONFIG_KeepOpenVolume, CONFIG_KeepOpenRate, Settings.Ratio);
 
         // Reset Motor Interrupt Trigger
-        PrevMotorIntPin = HIGH;
+        MOTOR_Monitor(true);
 
 		START_STATE = false;
 	}
 
-    // Monitor MOTOR_INT for move completion
-    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    // Monitor Motor for move completion
+    MotorInterruptReason InterruptReason = MOTOR_Monitor();
+    if(InterruptReason == MoveCompleted)
     {
         do_controller = state_END_CYCLE;
     }
-    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
 
     // Moniter Early Cancel Inputs
     if(EarlyCancel(true))
@@ -235,7 +239,6 @@ void state_KEEP_OPEN()
 
 void state_FLUSH_PURGE()
 {
-    static bool PrevMotorIntPin = false;
 	static bool START_STATE = true;
 	if(START_STATE)
 	{
@@ -248,13 +251,14 @@ void state_FLUSH_PURGE()
             SetupMotors(FORWARD, CONFIG_FlushFinalBolusVolume, CONFIG_FlushRate, 100);
 
         // Reset Motor Interrupt Trigger
-        PrevMotorIntPin = HIGH;
+        MOTOR_Monitor(true);
 
  		START_STATE = false;
 	}
 
-    // Monitor MOTOR_INT for move completion
-    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    // Monitor Motor for move completion
+    MotorInterruptReason InterruptReason = MOTOR_Monitor();
+    if(InterruptReason == MoveCompleted)
     {
         if(FirstFlush)
         {
@@ -269,7 +273,6 @@ void state_FLUSH_PURGE()
         
         
     }
-    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
 
     // Moniter Early Cancel Inputs
     if(EarlyCancel(false))
@@ -288,7 +291,7 @@ void state_FLUSH_PURGE()
 
 void state_FLUSH_BACK_AND_FORTH()
 {
-    static bool PrevMotorIntPin = false;
+    
 	static bool START_STATE = true;
     static uint CycleCounter = 0;
     static bool dir = 1; // 0: Backward (Back) 1: Forward (FORTH)
@@ -303,13 +306,14 @@ void state_FLUSH_BACK_AND_FORTH()
             SetupMotors(BACKWARD, CONFIG_FlushBackwardVolume, CONFIG_FlushRate, 100);
 
         // Reset Motor Interrupt Trigger
-        PrevMotorIntPin = HIGH;
+        MOTOR_Monitor(true);
 
  		START_STATE = false;
 	}
 
-    // Monitor MOTOR_INT for move completion
-    if(pinReadFast(MOTOR_INT_PIN) && PrevMotorIntPin == 0)
+    // Monitor Motor for move completion
+    MotorInterruptReason InterruptReason = MOTOR_Monitor();
+    if(InterruptReason == MoveCompleted)
     {
         if(dir)
         {
@@ -334,7 +338,6 @@ void state_FLUSH_BACK_AND_FORTH()
             }
         }
     }
-    PrevMotorIntPin = pinReadFast(MOTOR_INT_PIN);
 
     // Moniter Early Cancel Inputs
     if(EarlyCancel(false))
@@ -366,7 +369,7 @@ void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, 
     // Enable Motors
     Wire.beginTransmission(4);
     Wire.write(Motor_EN_Reg);
-    Wire.write(0b00000111); // Motor_EN_Reg - Disable all 3 motors
+    Wire.write(0b00000111); // Motor_EN_Reg - Enable all 3 motors
     Wire.endTransmission();
     
     // Set Directions

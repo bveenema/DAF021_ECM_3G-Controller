@@ -1,4 +1,8 @@
 #include "motor.h"
+#include "pins.h"
+
+// Utility Functions
+bool CheckErrorReg();
 
 void MOTOR_init()
 {
@@ -11,23 +15,45 @@ void MOTOR_init()
     Wire.endTransmission();
 }
 
-
-void MOTOR_update()
+MotorInterruptReason MOTOR_Monitor(const bool reset)
 {
-    // Tell the motor to move every 5 seconds
-    static uint WaitToMove = 0;
-    if(millis() - WaitToMove > 5000)
+    static bool PrevMotorIntPin = false;
+
+    // Set the previous state to high so only a rising edge will trigger
+    if(reset)
+        PrevMotorIntPin = true;
+
+    bool MotorIntPin = pinReadFast(MOTOR_INT_PIN);
+    if(MotorIntPin && PrevMotorIntPin == 0)
     {
-        WaitToMove = millis();
+        if(CheckErrorReg())
+            return PositionError;
+        else
+            return MoveCompleted;        
     }
 
-    // Check status every second
-    static uint CheckStatus = 0;
-    if(millis() - CheckStatus > 1000)
-    {
-        CheckStatus = millis();
-    }
+    PrevMotorIntPin = MotorIntPin;
 
+    return NoInterrupt;
+}
+
+bool CheckErrorReg()
+{
+    // Set the Regsiter Pointer
+    Wire.beginTransmission(MotorControllerAddress);
+    Wire.write(Motor_ERROR_Reg);
+    Wire.endTransmission();
+
+    // Read the register back
+    char ErrorRegister = 0;
+    Wire.requestFrom(4,1);
+    while(Wire.available()) {
+        ErrorRegister = Wire.read();
+    }
+    if(ErrorRegister)
+        Serial.printlnf("POSITION ERROR! Reg = %d", ErrorRegister);
+
+    return ErrorRegister;
 }
 
 void MOTOR_SetAcceleration(const MotorName motor, const int acceleration)
