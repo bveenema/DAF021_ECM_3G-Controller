@@ -410,7 +410,7 @@ bool EarlyCancel(bool CheckLiquid)
       )
     {
         
-        Serial.printlnf("EARLY CANCEL NOT LIQUID");
+        Serial.printlnf("EARLY CANCEL NOT LIQUID: %s", (PailSensor.getState() == 0) ? "Pail" : "Pressure");
         return true;
     }
     if(CheckLiquid)
