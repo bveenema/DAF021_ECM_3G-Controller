@@ -83,5 +83,5 @@ void pressureManager::setPump(bool state)
 // Open(1)/Close(0) Valve
 void pressureManager::setValve(bool state)
 {
-    _ioExp->writePin(_valvePin, state);
+    _ioExp->writePin(_valvePin, !state);
 }
