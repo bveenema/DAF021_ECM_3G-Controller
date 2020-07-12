@@ -5,6 +5,7 @@
 #include "rf_remote.h"
 #include "PailSensor.h"
 #include "PressureManager.h"
+#include "globals.h"
 
 // Define State Machine Pointer
 void (*do_controller)() = state_INIT;
@@ -184,6 +185,8 @@ void state_SHORT_SHOT()
     MotorInterruptReason InterruptReason = MOTOR_Monitor();
     if(InterruptReason == MoveCompleted)
     {
+        if(LiquidSensor_Blue.hasLiquid() && LiquidSensor_Red.hasLiquid())
+            CHIME_ShortShotSuccess.setStatus(Active);
         do_controller = state_END_CYCLE;
     }
 

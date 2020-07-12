@@ -28,6 +28,9 @@ extern VDW_ChimeStatus CHIME_LiquidError;
 extern VDW_ChimeStatus CHIME_StartFlush;
 extern VDW_ChimeStatus CHIME_NoBucket;
 extern VDW_ChimeStatus CHIME_BLE_Confirm;
+extern VDW_ChimeStatus CHIME_ShortShotSuccess;
+extern VDW_ChimeStatus CHIME_SettingsInvalid;
+
 
 // Pressure Sensors
 extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Blue;

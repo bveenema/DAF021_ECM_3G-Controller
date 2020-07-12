@@ -91,6 +91,9 @@ void setup()
     // Enable Liquid Sensors
     LiquidSensor_Blue.enableDetection();
     LiquidSensor_Red.enableDetection();
+
+    // Enable Invalid Settings Chime
+    CHIME_SettingsInvalid.setStatus(Active);
 }
 
 void loop()
@@ -136,6 +139,10 @@ void loop()
 
         FLAG_SettingsUpdated = false;
     }
+
+    // Turn off the Invalid Settings Chime if there are valid settings
+    if(Settings.valid == true)
+        CHIME_SettingsInvalid.setStatus(Disabled);
     
     static uint LastPrintTime = 0;
     if(millis() - LastPrintTime > 1000)

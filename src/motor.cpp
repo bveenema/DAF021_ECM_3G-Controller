@@ -217,4 +217,6 @@ void MOTOR_StopAllMotors()
     Wire.write(Motor_MOVE_Reg);
     Wire.write(0);
     Wire.endTransmission();
+
+    Serial.println("\nSTOP ALL MOTORS");
 }

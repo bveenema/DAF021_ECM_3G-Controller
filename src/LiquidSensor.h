@@ -42,6 +42,7 @@ class liquidSensor
     bool _hasLiquid = true;
     bool _detectionEnabled = false;
     bool _liquidReDetected = false;
+    bool _liquidErrorEnabled = false;
     uint _liquidReDetectedTime = 0;
 };
 
