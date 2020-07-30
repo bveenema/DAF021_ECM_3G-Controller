@@ -1,6 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// Cycle Settings
+#define CONFIG_ShortShotEnable 0 // 0: Disable Short Shot, 1: Enable Short Shot
+
 // Pail Sensor Settings
 #define CONFIG_PailDetectionThreshold 1200 // ADC Value (out of 4085)
 

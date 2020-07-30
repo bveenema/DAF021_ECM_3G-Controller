@@ -56,7 +56,12 @@ void state_IDLE()
 	{
         // Run a Short Shot if no liquid is present for a mix
 		if(!LiquidSensor_Blue.hasLiquid() || !LiquidSensor_Red.hasLiquid()) // Check for Liquid presence if MIX mode, ignore for flush
-			do_controller = state_SHORT_SHOT;
+        {
+            if(CONFIG_ShortShotEnable == 1) // Check if Short Shot is enabled
+            {
+                do_controller = state_SHORT_SHOT;
+            }
+        }
 		else
 		{
 			do_controller = state_MIX;
