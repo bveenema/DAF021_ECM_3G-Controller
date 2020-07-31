@@ -22,14 +22,13 @@ void writeIO3(uint8_t pin, bool dir);
 
 // Chimes
 extern VDW_StatusChimeTarget Chime;
-extern VDW_ChimeStatus CHIME_StartStop;
-extern VDW_ChimeStatus CHIME_RevLimit;
-extern VDW_ChimeStatus CHIME_LiquidError;
-extern VDW_ChimeStatus CHIME_StartFlush;
+// extern VDW_ChimeStatus CHIME_StartStop;
+// extern VDW_ChimeStatus CHIME_LiquidError;
+// extern VDW_ChimeStatus CHIME_StartFlush;
 extern VDW_ChimeStatus CHIME_NoBucket;
 extern VDW_ChimeStatus CHIME_BLE_Confirm;
-extern VDW_ChimeStatus CHIME_ShortShotSuccess;
-extern VDW_ChimeStatus CHIME_SettingsInvalid;
+// extern VDW_ChimeStatus CHIME_ShortShotSuccess;
+// extern VDW_ChimeStatus CHIME_SettingsInvalid;
 
 
 // Pressure Sensors

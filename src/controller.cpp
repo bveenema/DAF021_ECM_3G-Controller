@@ -70,7 +70,7 @@ void state_IDLE()
 	}
     else if(input == LongPress)
     {
-        CHIME_StartFlush.setStatus(Active);
+        // CHIME_StartFlush.setStatus(Active);
         do_controller = state_FLUSH_PURGE;
         LastRunTime = millis();
     }
@@ -86,7 +86,7 @@ void state_MIX()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-	    CHIME_StartStop.setStatus(Active);
+	    // CHIME_StartStop.setStatus(Active);
 		Serial.println("\nMIX\n");
 
         SetupMotors(FORWARD, Settings.Volume, CONFIG_MixRate, Settings.Ratio);
@@ -175,7 +175,7 @@ void state_SHORT_SHOT()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-        CHIME_StartStop.setStatus(Active);
+        // CHIME_StartStop.setStatus(Active);
 		Serial.println("\nSHORT SHOT\n");
 
         SetupMotors(FORWARD, CONFIG_ShortShotVolume, CONFIG_ShortShotRate, Settings.Ratio);
@@ -190,8 +190,8 @@ void state_SHORT_SHOT()
     MotorInterruptReason InterruptReason = MOTOR_Monitor();
     if(InterruptReason == MoveCompleted)
     {
-        if(LiquidSensor_Blue.hasLiquid() && LiquidSensor_Red.hasLiquid())
-            CHIME_ShortShotSuccess.setStatus(Active);
+        // if(LiquidSensor_Blue.hasLiquid() && LiquidSensor_Red.hasLiquid())
+        //     CHIME_ShortShotSuccess.setStatus(Active);
         do_controller = state_END_CYCLE;
     }
 
@@ -214,7 +214,7 @@ void state_KEEP_OPEN()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-        CHIME_StartStop.setStatus(Active);
+        // CHIME_StartStop.setStatus(Active);
 		Serial.println("\nSHORT SHOT\n");
 
         SetupMotors(FORWARD, CONFIG_KeepOpenVolume, CONFIG_KeepOpenRate, Settings.Ratio);
@@ -366,7 +366,7 @@ void state_FLUSH_BACK_AND_FORTH()
 void state_END_CYCLE()
 {
     Serial.println("\nEND CYCLE\n");
-    CHIME_StartStop.setStatus(Active);
+    // CHIME_StartStop.setStatus(Active);
     LastRunTime = millis();
     FirstFlush = true;
     do_controller = state_IDLE;

@@ -25,7 +25,7 @@ void liquidSensor::update()
 		// if liquid has been previously detected, set the LiquidError chime
 		if(_liquidErrorEnabled)
 		{
-			CHIME_LiquidError.setStatus(Active);
+			// CHIME_LiquidError.setStatus(Active);
 			_liquidErrorEnabled = false;
 		}
 			
@@ -52,8 +52,8 @@ void liquidSensor::update()
 		if(_liquidReDetected && millis() - _liquidReDetectedTime > 1000)
 		{
 			_hasLiquid = true;
-			if(_liquidErrorEnabled == false)
-				CHIME_ShortShotSuccess.setStatus(Active);
+			// if(_liquidErrorEnabled == false)
+			// 	CHIME_ShortShotSuccess.setStatus(Active);
 			_liquidErrorEnabled = true;
 		}
 	}
