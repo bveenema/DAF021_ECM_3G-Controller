@@ -14,73 +14,42 @@ extern _MotorMode MotorMode;
 // States
 
 /// INIT
-/// Initializes the Stepper Motor
-/// 	Proceeds To: IDLE
-///		ChangeState: ignores
-///		Require next_state: false
+/// Sets the motor accelerations
 void state_INIT();
 
 /// IDLE
-/// Stops the motor. Waits for user input to run cycles. After first cycle, calls KEEP OPEN state periodically.
-///		Proceeds To: self
-///		ChangeState: Proceed to CHARGE
-///		Require next_state: false
+/// Runs the motor in reverse at Idle Speed. Waits for user input to run cycles. After first cycle, calls KEEP OPEN state periodically.
 void state_IDLE();
 
 /// MIX
-/// Calculates distance to move based on Rev Limit. Sets 0 position of motor. Signals start of cycle.
-///		Proceeds To: RUN_DISTANCE, then SUCK_BACK
-///		ChangeState: ignores
-///		Require next_state: false
+/// Runs the motors forward on ratio for a full mix cycle defined by CONFIG_MixRate and Settings.Volume
 void state_MIX();
 
 /// SHORT_SHOT
-/// Calculates distance to move for a Short Shot. Sets 0 position of motor.
-///     Proceeds To: RUN_DISTANCE -> IDLE
-///     ChangeState: ignores
-///     Require next_state: false
+/// Runs the motors a short distance forward on ratio defined by CONFIG_ShortShotVolume and CONFIG_ShortShotRate
 void state_SHORT_SHOT();
 
 /// SUCK BACK
-/// Runs the motors backwards a short distance on ratio defined by SuckBackDistance and SuckBackRPM and RPM Ratio
-///		Proceeds To: RUN_DISTANCE, then END_CYCLE unless next_state defined
-///		ChangeState: ignores
-///		Require next_state: false
+/// Runs the motors backwards a short distance on ratio defined by CONFIG_SuckBackVolume and CONFIG_SuckBackRate
 void state_SUCK_BACK();
 
 /// KEEP OPEN
-/// Calculates and sets speeds and accelerations and sets short distance move to keep the mixer from clogging
-///		Proceeds To: RUN_FOR_DISTANCE -> SUCK_BACK -> IDLE
-///		ChangeState: ignores
-///		Require next_state: false
+/// Periodically runs the motors forwards on ratio a short distance defined by CONFIG_KeepOpenVolume and
+/// CONFIG_KeepOpenRate
 void state_KEEP_OPEN();
 
-/// PAUSE
-/// Delays next step for PauseTime (ms)
-///		Proceeds To: next_state
-///		ChangeState: Proceed to END_CYCLE
-///		Require next_state: true
-void state_PAUSE();
-
 /// FLUSH PURGE
-/// Calculates and sets speeds and accelerations and sets practically indefinite target. Sets Start/Stop Chime active
-///		Proceeds To: RUN_FOR_DISTANCE
-///		ChangeState: ignores
-///		Require next_state: false
+/// Runs the motors forward at 1:1 ratio for a distance define by CONFIG_FlushFirstBolusVolume or 
+/// CONFIG_FlushFinalBolusVolume at CONFIG_FlushRate
 void state_FLUSH_PURGE();
 
 /// FLUSH_BACK_AND_FORTH
-/// Causes motor to rotate back and forth. Calculates distance to move. Ends Cycle after time elapses
-///		Proceeds To: RUN_FOR_DISTANCE
-///		ChangeState: Proceed to END_CYCLE
-///		Require next_state: false
+/// Runs the motors backwards and forwards at CONFIG_FlushRate for CONFIG_FlushForwardVolume or 
+/// CONFIG_FlushBackwardVolume, pausing for CONFIG_FlushPauseTime
 void state_FLUSH_BACK_AND_FORTH();
 
 /// END_CYCLE
-/// Sets Start/Stop Chime Active.
-///		Proceeds To: IDLE
-///		ChangeState: ignores
-///		Require next_state: false
+/// Resets LastRunTime and FirstFlush
 void state_END_CYCLE();
 
 #endif
