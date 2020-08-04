@@ -86,7 +86,7 @@ void state_MIX()
 	if(START_STATE)
 	{
         // Signal Start of Cycle
-	    // CHIME_StartStop.setStatus(Active);
+	    CHIME_StartStop.setStatus(Active);
 		Serial.println("\nMIX\n");
 
         SetupMotors(FORWARD, Settings.Volume, CONFIG_MixRate, Settings.Ratio);
@@ -130,7 +130,10 @@ void state_MIX()
 
     // Exit State Clean-up
 	if(do_controller != state_MIX)
-		START_STATE = true;
+    {
+        CHIME_StartStop.setStatus(Active);
+        START_STATE = true;
+    }	
 }
 
 void state_SUCK_BACK()

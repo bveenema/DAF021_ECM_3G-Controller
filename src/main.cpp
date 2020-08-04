@@ -94,6 +94,9 @@ void setup()
 
     // Enable Invalid Settings Chime
     // CHIME_SettingsInvalid.setStatus(Active);
+
+    // Enable Power On Chime
+    CHIME_PowerOn.setStatus(Active);
 }
 
 void loop()

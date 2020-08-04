@@ -22,7 +22,8 @@ void writeIO3(uint8_t pin, bool dir);
 
 // Chimes
 extern VDW_StatusChimeTarget Chime;
-// extern VDW_ChimeStatus CHIME_StartStop;
+extern VDW_ChimeStatus CHIME_StartStop;
+extern VDW_ChimeStatus CHIME_PowerOn;
 // extern VDW_ChimeStatus CHIME_LiquidError;
 // extern VDW_ChimeStatus CHIME_StartFlush;
 extern VDW_ChimeStatus CHIME_NoBucket;
