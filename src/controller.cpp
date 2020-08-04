@@ -9,6 +9,7 @@
 
 // Define State Machine Pointer
 void (*do_controller)() = state_INIT;
+void (*next_state)() = state_IDLE; // Some functions use a "next state" pointer so they may be re-used. The function that calls a function that uses next_state must set the next_state pointer (ex. state_PAUSE)
 
 // LastRunTime is used to determine when a keep open should run and is updated every time a keep open, mix or flush is finished
 uint LastRunTime = 0;
@@ -33,80 +34,44 @@ void state_INIT()
 
 void state_IDLE()
 {
-	// holder pointer for do_controller until motors have stopped spinning
-    static void (*next_state)() = nullptr;
-
-    static bool START_STATE = true;
+	static bool START_STATE = true;
 	if(START_STATE)
 	{
 		Serial.println("\nIDLE\n");
-
-        // Spin on Ratio if settings are present, otherwise spin 1:1
-        if(Settings.valid == true)
-            SetupMotors(BACKWARD, CONFIG_IdleMotorVolume, CONFIG_IdleMotorRate, Settings.Ratio);
-        else
-            SetupMotors(BACKWARD, CONFIG_IdleMotorVolume, CONFIG_IdleMotorRate, 100);
-        
-        // Reset Motor Interrupt Trigger
-        MOTOR_Monitor(true);
-
-        // Reset next_state
-        next_state = nullptr;
-
 		START_STATE = false;
 	}
 
-    // Monitor Motor for move completion
-    MotorInterruptReason InterruptReason = MOTOR_Monitor();
-    if(InterruptReason == MoveCompleted)
-    {
-        if(next_state == nullptr) // if next_state isn't set, restart the idle motor spin
-            START_STATE = false;
-        else // if next_state is set, load into do_controller
-            do_controller = next_state;
-    }
-
-    // Read remote so button presses aren't stored before settings are valid, ignore remote if next_state is set to prevent overriding commands
-    PressType input = None;
-    if(next_state == nullptr)
-        input = Remote.getStatus();
+    // Always read remote so button presses aren't stored before settings are valid;
+    PressType input = Remote.getStatus();
 
     // If settings have not been received, do nothing
     if(Settings.valid == false) return;
 
     // Check if Keep Open should run
     if(FirstMix && millis() - LastRunTime > CONFIG_KeepOpenInterval)
-    {
-        // Stop the Idle Motor Spin
-        MOTOR_StopAllMotors();
+        do_controller = state_KEEP_OPEN;
 
-        next_state = state_KEEP_OPEN;
-    }
-
-	// Check Remote input status, ShortPress = ShortShot or Mix depending on liquid status, LongPress = Flush
+	// Handle ChangeState - state becomes charge
 	if(input == ShortPress)
 	{
-        // Stop the Idle Motor Spin
-        MOTOR_StopAllMotors();
-
-        // Run a Short Shot if enabled and no liquid is present for a mix
-		if((!LiquidSensor_Blue.hasLiquid() || !LiquidSensor_Red.hasLiquid()) && CONFIG_ShortShotEnable == 1) // Check for Liquid presence if MIX mode, ignore for flush
+        // Run a Short Shot if no liquid is present for a mix
+		if(!LiquidSensor_Blue.hasLiquid() || !LiquidSensor_Red.hasLiquid()) // Check for Liquid presence if MIX mode, ignore for flush
         {
-            next_state = state_SHORT_SHOT;
+            if(CONFIG_ShortShotEnable == 1) // Check if Short Shot is enabled
+            {
+                do_controller = state_SHORT_SHOT;
+            }
         }
 		else
 		{
-			next_state = state_MIX;
+			do_controller = state_MIX;
 			LastRunTime = millis();
 		}
 	}
     else if(input == LongPress)
     {
-        // Stop the Idle Motor Spin
-        MOTOR_StopAllMotors();
-
         // CHIME_StartFlush.setStatus(Active);
-        next_state = state_FLUSH_PURGE;
+        do_controller = state_FLUSH_PURGE;
         LastRunTime = millis();
     }
 

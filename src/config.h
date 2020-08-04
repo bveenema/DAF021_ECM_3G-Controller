@@ -39,10 +39,6 @@
 #define CONFIG_KeepOpenRate 1000 // mGallons/min
 #define CONFIG_KeepOpenInterval 600000 // ms (600000 = 10 minutes)
 
-// Idle Motor Settings
-#define CONFIG_IdleMotorVolume 10000 // mGallons
-#define CONFIG_IdleMotorRate 15 // mGallons/min (15 ~ 1.5 RPM at 1:1 ratio)
-
 // Motor Settings
 #define CONFIG_StepsPerRev 200 // steps/rev
 #define CONFIG_BlueMotorAcceleration 10000 // steps/sec^2
