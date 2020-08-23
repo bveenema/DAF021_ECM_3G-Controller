@@ -71,19 +71,7 @@ void setup()
 
     // Initialize Modules
     PressureManager.init(&IOEXP2, IO2_AIR_RED_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
-    if(Settings.valid)
-    {
-        if(Settings.Pressure == 18)
-        {
-            PressureManager.setOffPressure(CONFIG_PumpOffPressure_18);
-            PressureManager.setOnPressure(CONFIG_PumpOnPressure_18);
-        }
-        else if(Settings.Pressure == 30)
-        {
-            PressureManager.setOffPressure(CONFIG_PumpOffPressure_30);
-            PressureManager.setOnPressure(CONFIG_PumpOnPressure_30);
-        }
-    }
+
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
     MOTOR_init();
     Chime.init();
@@ -126,17 +114,6 @@ void loop()
     // Handle Settings Updated
     if(FLAG_SettingsUpdated)
     {
-        if(Settings.Pressure == 18)
-        {
-            PressureManager.setOffPressure(CONFIG_PumpOffPressure_18);
-            PressureManager.setOnPressure(CONFIG_PumpOnPressure_18);
-        }
-        else if(Settings.Pressure == 30)
-        {
-            PressureManager.setOffPressure(CONFIG_PumpOffPressure_30);
-            PressureManager.setOnPressure(CONFIG_PumpOnPressure_30);
-        }
-
         Settings.valid = true;
         EEPROM.put(SettingsAddr, Settings);
 

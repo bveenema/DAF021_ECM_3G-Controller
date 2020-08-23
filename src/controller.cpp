@@ -54,9 +54,11 @@ void state_IDLE()
 	// Handle ChangeState - state becomes charge
 	if(input == ShortPress)
 	{
+        Serial.println("ShortPress");
         // Run a Short Shot if no liquid is present for a mix
 		if(!LiquidSensor_Blue.hasLiquid() || !LiquidSensor_Red.hasLiquid()) // Check for Liquid presence if MIX mode, ignore for flush
         {
+            Serial.println("NO LIQUID");
             if(CONFIG_ShortShotEnable == 1) // Check if Short Shot is enabled
             {
                 do_controller = state_SHORT_SHOT;
@@ -89,7 +91,7 @@ void state_MIX()
 	    CHIME_StartStop.setStatus(Active);
 		Serial.println("\nMIX\n");
 
-        SetupMotors(FORWARD, Settings.Volume, CONFIG_MixRate, Settings.Ratio);
+        SetupMotors(FORWARD, Settings.Volume, Settings.MixRate, Settings.Ratio);
 
         // Reset Motor Interrupt Trigger
         MOTOR_Monitor(true);
@@ -424,7 +426,7 @@ bool EarlyCancel(bool CheckLiquid)
       )
     {
         
-        Serial.printlnf("EARLY CANCEL NOT LIQUID: %s", (PailSensor.getState() == 0) ? "Pail" : "Pressure");
+        Serial.printlnf("\nEARLY CANCEL: %s", (PailSensor.getState() == 0) ? "Pail" : "Pressure");
         return true;
     }
     if(CheckLiquid)
@@ -433,7 +435,7 @@ bool EarlyCancel(bool CheckLiquid)
             LiquidSensor_Red.hasLiquid() == 0
           )
         {
-            Serial.printlnf("EARLY CANCEL LIQUID");
+            Serial.println("\nEARLY CANCEL: Liquid");
             return true;
         }
     }

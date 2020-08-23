@@ -22,7 +22,7 @@ void state_INIT();
 void state_IDLE();
 
 /// MIX
-/// Runs the motors forward on ratio for a full mix cycle defined by CONFIG_MixRate and Settings.Volume
+/// Runs the motors forward on ratio for a full mix cycle defined by Settings.MixRate and Settings.Volume
 void state_MIX();
 
 /// SHORT_SHOT
