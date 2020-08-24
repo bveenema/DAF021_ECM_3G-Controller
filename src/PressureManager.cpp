@@ -79,6 +79,7 @@ PressureManagerState pressureManager::update()
     {
         if(millis() - TestTimer > _maxChargeTime)
         {
+            setPump(OFF);
             snprintf(ErrorCause, 32, "Failed to Reach Test Pressure");
             Serial.println("PM_Error");
             PM_State = PM_Error;
