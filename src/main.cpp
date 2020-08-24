@@ -71,6 +71,13 @@ void setup()
 
     // Initialize Modules
     PressureManager.init(&IOEXP2, IO2_AIR_RED_EN, IO2_VALVE_1_EN, &PressureSensor_Blue, &PressureSensor_Red);
+    PressureManager.setEmptyPressure(CONFIG_EmptyPressure);
+    PressureManager.setTestPressure(CONFIG_TestPressure);
+    PressureManager.setLeakPercentage(CONFIG_LeakPercentage);
+    PressureManager.setMaxChargeTime(CONFIG_MaxChargeTime);
+    PressureManager.setSmallReservoirTime(CONFIG_SmallReservoirTime);
+    PressureManager.setSettleTime(CONFIG_SettleTime);
+    PressureManager.setLeakTestTime(CONFIG_LeakTestTime);
 
     Remote.init(&IOEXP1, IO1_USER_REMOTE);
     MOTOR_init();

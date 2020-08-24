@@ -8,12 +8,21 @@
 #define CONFIG_PailDetectionThreshold 1200 // ADC Value (out of 4085)
 
 // Pressure Settings
+#define CONFIG_SkipPressureTest 0 // 0: Use reservoir sizing and leak testing 1: Skip the reservoir sizing and leak testing (uses Small Reservoir Settings)
+
 #define CONFIG_MinValidPressure 500 // mPSI (500)
 #define CONFIG_MaxChargePressure 4000 // mPSI (4000)
-#define CONFIG_PumpOnPressure_18 1400 // mPSI (1400)
-#define CONFIG_PumpOffPressure_18 1800 // mPSI (1800)
-#define CONFIG_PumpOnPressure_30 2500 // mPSI (2500)
-#define CONFIG_PumpOffPressure_30 3000 // mPSI (3000)
+#define CONFIG_PumpOnPressure_Small 1400 // mPSI (1400)
+#define CONFIG_PumpOffPressure_Small 1800 // mPSI (1800)
+#define CONFIG_PumpOnPressure_Large 2500 // mPSI (2500)
+#define CONFIG_PumpOffPressure_Large 3000 // mPSI (3000)
+#define CONFIG_EmptyPressure 100 // mPSI - the pressure of an empty reservoir
+#define CONFIG_TestPressure 1500 // mPSI - the pressure to which the reservoir is charged for determining size and leak test
+#define CONFIG_LeakPercentage 10 // % - the % amount the pressure can decrease after settling during leak testing
+#define CONFIG_MaxChargeTime 60000 // mSec - the max amount of time for the reservoir to reach Test Pressure
+#define CONFIG_SmallReservoirTime 5000 // mSec - the threshold time for a small reservoir (< SmallReservoirTime = Small Reservoir, > SmallReservoirTime = Large Reservoir)
+#define CONFIG_SettleTime 2000 // mSec - the amount of time after the reservoir reaches the test pressure to settle
+#define CONFIG_LeakTestTime 10000 // mSec - the total Leak Test time (pressure for leaks after Settle Time)
 
 // Volume Settings
 #define CONFIG_MilliCubicInchesPerRevolution 1210 // mCu-in/Rev
