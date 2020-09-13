@@ -9,15 +9,12 @@ BleCharacteristic rxCharacteristic("rx", BleCharacteristicProperty::WRITE_WO_RSP
 void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, void* context) {
     // Log.trace("Received data from: %02X:%02X:%02X:%02X:%02X:%02X:", peer.address()[0], peer.address()[1], peer.address()[2], peer.address()[3], peer.address()[4], peer.address()[5]);
 
-    // Data is sent as a comma seperated variable string formatted as: Ratio,MixRate,Volume
-    /// Ratio: XXX:100 where X is Blue Ratio and 1 is Red ratio
-    /// MixRate: mGal/min
-    /// Volume: mGal
+    // Data is sent as a comma seperated variable string formatted as: RevolutionsBlue,RevolutionsRed
+    /// Revolutions Red/Blue: The total revolutions for each pump for a mix
     
     // Print Data to Terminal
-    char RatioBuffer[16];
-    char MixRateBuffer[16];
-    char VolumeBuffer[16];
+    char RevolutionsBlueBuffer[16];
+    char RevolutionsRedBuffer[16];
     uint CurrentVariable = 0;
     uint i = 0;
     for (size_t j = 0; j < len; j++) {
@@ -28,12 +25,10 @@ void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, 
         if(data[j] == ',' || data[j] == '\n')
         {
             // Place null terminator at end of buffer
-            if(CurrentVariable == 0) // Ratio
-                RatioBuffer[i+1] = '\0';
-            else if(CurrentVariable == 1) // Rate
-                MixRateBuffer[i+1] = '\0';
-            else if(CurrentVariable == 2) // Viscosity
-                VolumeBuffer[i+1] = '\0';
+            if(CurrentVariable == 0) // RevolutionsBlue
+                RevolutionsBlueBuffer[i+1] = '\0';
+            else if(CurrentVariable == 1) // RevolutionsRed
+                RevolutionsRedBuffer[i+1] = '\0';
 
             // reset i
             i = 0;
@@ -46,22 +41,20 @@ void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, 
         // else store the character in the appropriate buffer
         else
         {
-            if(CurrentVariable == 0) // Ratio
-                RatioBuffer[i] = data[j];
-            else if(CurrentVariable == 1) // Rate
-                MixRateBuffer[i] = data[j];
-            else if(CurrentVariable == 2) // Viscosity
-                VolumeBuffer[i] = data[j];
+            if(CurrentVariable == 0) // RevolutionsBlue
+                RevolutionsBlueBuffer[i] = data[j];
+            else if(CurrentVariable == 1) // RevolutionsRed
+                RevolutionsRedBuffer[i] = data[j];
             i += 1; // increment character position
         }
     }
 
-    Settings.Ratio = atoi(RatioBuffer);
-    Settings.MixRate = atoi(MixRateBuffer);
-    Settings.Volume = atoi(VolumeBuffer);
+    Settings.RevolutionsBlue = atoi(RevolutionsBlueBuffer);
+    Settings.RevolutionsRed = atoi(RevolutionsRedBuffer);
+    Settings.Ratio = Settings.RevolutionsBlue*100/Settings.RevolutionsRed;
     FLAG_SettingsUpdated = true;
 
-    Serial.printlnf("Ratio: %d, MixRate: %d, Volume: %d", Settings.Ratio, Settings.MixRate, Settings.Volume);
+    Serial.printlnf("Revs Red: %d, Revs Blue: %d, Ratio: %d", Settings.RevolutionsRed, Settings.RevolutionsBlue, Settings.Ratio);
     CHIME_BLE_Confirm.setStatus(Active);
 }
 

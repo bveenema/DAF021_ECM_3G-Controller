@@ -34,6 +34,7 @@
 #define CONFIG_FlushBackwardVolume 10 // mGallons
 
 // Rate Settings
+#define CONFIG_MixRate 2000 //mGallons/min
 #define CONFIG_SuckBackRate 1000 // mGallons/min
 #define CONFIG_ShortShotRate 2500 // mGallons/min
 #define CONFIG_FlushRate 2500 // mGallons/min

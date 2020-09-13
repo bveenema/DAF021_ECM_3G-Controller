@@ -20,7 +20,8 @@ bool FirstMix = false;
 bool FirstFlush = true;
 
 // Utility Functions
-void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio);
+void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio); // Calls below setup motors, used for non-mix
+void SetupMotors(const Direction Direction, const uint RevsBlue, const uint RevsRed, const uint Rate,  const uint Ratio); // runs motors for mix
 bool EarlyCancel(bool CheckLiquid);
 
 void state_INIT()
@@ -91,7 +92,7 @@ void state_MIX()
 	    CHIME_StartStop.setStatus(Active);
 		Serial.println("\nMIX\n");
 
-        SetupMotors(FORWARD, Settings.Volume, Settings.MixRate, Settings.Ratio);
+        SetupMotors(FORWARD, Settings.RevolutionsBlue, Settings.RevolutionsRed, CONFIG_MixRate, Settings.Ratio);
 
         // Reset Motor Interrupt Trigger
         MOTOR_Monitor(true);
@@ -361,8 +362,6 @@ void state_FLUSH_BACK_AND_FORTH()
         do_controller = state_END_CYCLE;
     }
         
-    
-
     // Exit State Clean-up
 	if(do_controller != state_FLUSH_BACK_AND_FORTH)
 		START_STATE = true;
@@ -379,6 +378,19 @@ void state_END_CYCLE()
 
 void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio)
 {
+    // Calculate RevsRed and RevsBlue
+    /// Revs = mGal * Cu-in/gal / mCu-in/Rev
+    uint TotalRevs = Volume * CubicInchesPerGallon / CONFIG_MilliCubicInchesPerRevolution;
+    uint RevsBlue = TotalRevs * Ratio / (Ratio + 100);
+    uint RevsRed = TotalRevs * 100 / (Ratio + 100);
+
+    Serial.printlnf("Total Revs: %d, Blue Revs: %d, Red Revs: %d", TotalRevs, RevsBlue, RevsRed);
+
+    SetupMotors(Direction, RevsRed, RevsBlue, Rate, Ratio);
+}
+
+void SetupMotors(const Direction Direction, const uint RevsBlue, const uint RevsRed, const uint Rate,  const uint Ratio)
+{
     // Enable Motors
     Wire.beginTransmission(4);
     Wire.write(Motor_EN_Reg);
@@ -390,12 +402,11 @@ void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, 
     MOTOR_SetDirection(Red, Direction);
 
     // Set Steps
-    /// Steps = mGal * Cu-in/gal * Steps/Rev / mCu-in/Rev
-    uint TotalSteps = Volume * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution;
-    uint BlueSteps = TotalSteps * Ratio / (Ratio + 100);
-    uint RedSteps = TotalSteps * 100 / (Ratio + 100);
+    /// Steps = Revolutions * Steps/Revolution
+    uint BlueSteps = RevsBlue * CONFIG_StepsPerRev;
+    uint RedSteps = RevsRed * CONFIG_StepsPerRev;
 
-    Serial.printlnf("Total Steps: %d, Blue Steps: %d, Red Steps: %d", TotalSteps, BlueSteps, RedSteps);
+    Serial.printlnf("Blue Steps: %d, Red Steps: %d", BlueSteps, RedSteps);
 
     MOTOR_SetTarget(Blue, BlueSteps);
     MOTOR_SetTarget(Red, RedSteps);
@@ -406,7 +417,7 @@ void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, 
     uint BlueStepsPerSecond = TotalStepsPerSecond * Ratio / (Ratio + 100);
     uint RedStepsPerSecond = TotalStepsPerSecond * 100 / (Ratio + 100);
 
-    Serial.printlnf("Total Steps/Sec: %d, Blue Steps/Sec: %d, Red Steps/Sec: %d", TotalStepsPerSecond, BlueStepsPerSecond, RedStepsPerSecond);
+    Serial.printlnf("Blue Steps/Sec: %d, Red Steps/Sec: %d", BlueStepsPerSecond, RedStepsPerSecond);
 
     MOTOR_SetSpeed(Blue, BlueStepsPerSecond);
     MOTOR_SetSpeed(Red, RedStepsPerSecond);

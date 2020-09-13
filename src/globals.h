@@ -40,10 +40,10 @@ extern VDW_PressureSensor_Honeywell_HSC_SSC PressureSensor_Red;
 const uint32_t SettingsAddr = 0x00;
 struct settings
 {
-    uint version = 2;
+    uint version = 3;
+    uint RevolutionsRed = 0;
+    uint RevolutionsBlue = 0;
     uint Ratio = 0; // XXX:100 Blue:Red
-    uint Volume = 0; //mGal
-    uint MixRate = 0; //mGal/min
     bool valid = false; // true when settings have been set
 };
 
