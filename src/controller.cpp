@@ -19,10 +19,21 @@ bool FirstMix = false;
 // Flush purge is used for initial and final bolus. FirstFlush tracks which purge should be used.
 bool FirstFlush = true;
 
+// Error Status
+enum ErrorStatus
+{
+    ES_None,
+    ES_Pressure,
+    ES_Liquid,
+    ES_Pail,
+    ES_Remote,
+};
+
 // Utility Functions
 void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio); // Calls below setup motors, used for non-mix
 void SetupMotors(const Direction Direction, const uint RevsBlue, const uint RevsRed, const uint Rate,  const uint Ratio); // runs motors for mix
-bool EarlyCancel(bool CheckLiquid);
+ErrorStatus CheckErrors(); // Check for various error status conditions
+
 
 void state_INIT()
 {
@@ -125,7 +136,8 @@ void state_MIX()
     }
 
     // Moniter Early Cancel Inputs
-    if(EarlyCancel(true))
+    ErrorStatus EStatus = CheckErrors();
+    if(EStatus != ES_None)
     {
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
@@ -163,7 +175,8 @@ void state_SUCK_BACK()
     }
 
     // Moniter Early Cancel Inputs
-    if(EarlyCancel(false))
+    ErrorStatus EStatus = CheckErrors();
+    if(EStatus == ES_Remote || EStatus == ES_Pail || EStatus == ES_Pressure)
     {
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
@@ -202,7 +215,8 @@ void state_SHORT_SHOT()
     }
 
     // Moniter Early Cancel Inputs
-    if(EarlyCancel(false))
+    ErrorStatus EStatus = CheckErrors();
+    if(EStatus == ES_Remote || EStatus == ES_Pail || EStatus == ES_Pressure)
     {
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
@@ -239,7 +253,8 @@ void state_KEEP_OPEN()
     }
 
     // Moniter Early Cancel Inputs
-    if(EarlyCancel(true))
+    ErrorStatus EStatus = CheckErrors();
+    if(EStatus != ES_None)
     {
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
@@ -260,9 +275,9 @@ void state_FLUSH_PURGE()
 		Serial.printlnf("\nFLUSH_PURGE %s\n", (FirstFlush) ? "FIRST" : "FINAL");
 
         if(FirstFlush)
-            SetupMotors(FORWARD, CONFIG_FlushFirstBolusVolume, CONFIG_FlushRate, 100);
+            SetupMotors(FORWARD, CONFIG_FlushFirstBolusVolume, CONFIG_FlushRate, 10000);
         else
-            SetupMotors(FORWARD, CONFIG_FlushFinalBolusVolume, CONFIG_FlushRate, 100);
+            SetupMotors(FORWARD, CONFIG_FlushFinalBolusVolume, CONFIG_FlushRate, 10000);
 
         // Reset Motor Interrupt Trigger
         MOTOR_Monitor(true);
@@ -289,7 +304,8 @@ void state_FLUSH_PURGE()
     }
 
     // Moniter Early Cancel Inputs
-    if(EarlyCancel(false))
+    ErrorStatus EStatus = CheckErrors();
+    if(EStatus == ES_Remote || EStatus == ES_Pail)
     {
         MOTOR_StopAllMotors();
         FirstFlush = true;
@@ -315,9 +331,9 @@ void state_FLUSH_BACK_AND_FORTH()
 		Serial.printlnf("\nFLUSH %s: CYCLE: %d\n", (dir) ? "FORTH" : "BACK", CycleCounter);
 
         if(dir)
-            SetupMotors(FORWARD, CONFIG_FlushForwardVolume, CONFIG_FlushRate, 100);
+            SetupMotors(FORWARD, CONFIG_FlushForwardVolume, CONFIG_FlushRate, 10000);
         else
-            SetupMotors(BACKWARD, CONFIG_FlushBackwardVolume, CONFIG_FlushRate, 100);
+            SetupMotors(BACKWARD, CONFIG_FlushBackwardVolume, CONFIG_FlushRate, 10000);
 
         // Reset Motor Interrupt Trigger
         MOTOR_Monitor(true);
@@ -354,7 +370,8 @@ void state_FLUSH_BACK_AND_FORTH()
     }
 
     // Moniter Early Cancel Inputs
-    if(EarlyCancel(false))
+    ErrorStatus EStatus = CheckErrors();
+    if(EStatus == ES_Remote || EStatus == ES_Pail)
     {
         MOTOR_StopAllMotors();
         CycleCounter = 0;
@@ -429,27 +446,52 @@ void SetupMotors(const Direction Direction, const uint RevsBlue, const uint Revs
     Wire.endTransmission();
 }
 
-bool EarlyCancel(bool CheckLiquid)
+ErrorStatus CheckErrors()
 {
-    if( Remote.getStatus() == ShortPress ||
-        PailSensor.getState() == 0 ||
-        PressureManager.charged() == 0
-      )
+    static ErrorStatus LastError = ES_None;
+    if(Remote.getStatus() == ShortPress)
     {
-        
-        Serial.printlnf("\nEARLY CANCEL: %s", (PailSensor.getState() == 0) ? "Pail" : "Pressure");
-        return true;
-    }
-    if(CheckLiquid)
-    {
-        if( LiquidSensor_Blue.hasLiquid() == 0 ||
-            LiquidSensor_Red.hasLiquid() == 0
-          )
+        if(LastError != ES_Remote)
         {
-            Serial.println("\nEARLY CANCEL: Liquid");
-            return true;
+            LastError = ES_Remote;
+            Serial.println("\nError: Remote Press");
         }
+        return ES_Remote;
     }
+        
+    
+    if(PailSensor.getState() == 0)
+    {
+        if(LastError != ES_Pail)
+        {
+            LastError = ES_Pail;
+            Serial.println("\nError: Pail Sensor");
+        }
+        return ES_Pail;
+    }
+        
 
-    return false;
+    if(PressureManager.charged() == 0)
+    {
+        if(LastError != ES_Pressure)
+        {
+            LastError = ES_Pressure;
+            Serial.println("\nError: Pressure");
+        }
+        return ES_Pressure;
+    }
+        
+
+    if(LiquidSensor_Blue.hasLiquid() == 0 || LiquidSensor_Red.hasLiquid() == 0)
+    {
+        if(LastError != ES_Liquid)
+        {
+            LastError = ES_Liquid;
+            Serial.println("\nError: Liquid");
+        }
+        return ES_Liquid;
+    }
+        
+
+    return ES_None;
 }
