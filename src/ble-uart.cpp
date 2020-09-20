@@ -51,10 +51,10 @@ void onDataReceived(const uint8_t* data, size_t len, const BlePeerDevice& peer, 
 
     Settings.RevolutionsBlue = atoi(RevolutionsBlueBuffer);
     Settings.RevolutionsRed = atoi(RevolutionsRedBuffer);
-    Settings.Ratio = Settings.RevolutionsBlue*100/Settings.RevolutionsRed;
+    Settings.Ratio = Settings.RevolutionsBlue*10000/Settings.RevolutionsRed;
     FLAG_SettingsUpdated = true;
 
-    Serial.printlnf("Revs Red: %d, Revs Blue: %d, Ratio: %d", Settings.RevolutionsRed, Settings.RevolutionsBlue, Settings.Ratio);
+    Serial.printlnf("Revs Blue: %d, Revs Red: %d, Ratio: %d", Settings.RevolutionsBlue, Settings.RevolutionsRed, Settings.Ratio);
     CHIME_BLE_Confirm.setStatus(Active);
 }
 

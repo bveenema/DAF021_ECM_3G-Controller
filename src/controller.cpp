@@ -381,8 +381,8 @@ void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, 
     // Calculate RevsRed and RevsBlue
     /// Revs = mGal * Cu-in/gal / mCu-in/Rev
     uint TotalRevs = Volume * CubicInchesPerGallon / CONFIG_MilliCubicInchesPerRevolution;
-    uint RevsBlue = TotalRevs * Ratio / (Ratio + 100);
-    uint RevsRed = TotalRevs * 100 / (Ratio + 100);
+    uint RevsBlue = (uint)((float)TotalRevs / (Ratio + 10000) * Ratio);
+    uint RevsRed = (uint)((float)TotalRevs / (Ratio + 10000) * 10000);
 
     Serial.printlnf("Total Revs: %d, Blue Revs: %d, Red Revs: %d", TotalRevs, RevsBlue, RevsRed);
 
@@ -413,11 +413,11 @@ void SetupMotors(const Direction Direction, const uint RevsBlue, const uint Revs
 
     // Set Speeds
     /// Steps/Sec = mGPM * Cu-in/gal * Steps/Rev / mCu-in/Rev / 60
-    uint TotalStepsPerSecond = Rate * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution / 60;
-    uint BlueStepsPerSecond = TotalStepsPerSecond * Ratio / (Ratio + 100);
-    uint RedStepsPerSecond = TotalStepsPerSecond * 100 / (Ratio + 100);
+    uint TotalStepsPerSecond = (uint)((float)Rate * CubicInchesPerGallon * CONFIG_StepsPerRev / CONFIG_MilliCubicInchesPerRevolution / 60 * 1000);
+    uint BlueStepsPerSecond = (uint)((float)TotalStepsPerSecond / (Ratio + 10000) * Ratio);
+    uint RedStepsPerSecond = (uint)((float)TotalStepsPerSecond / (Ratio + 10000) * 10000);
 
-    Serial.printlnf("Blue Steps/Sec: %d, Red Steps/Sec: %d", BlueStepsPerSecond, RedStepsPerSecond);
+    Serial.printlnf("Total Steps/sec: %d,  Blue Steps/Sec: %d, Red Steps/Sec: %d", TotalStepsPerSecond, BlueStepsPerSecond, RedStepsPerSecond);
 
     MOTOR_SetSpeed(Blue, BlueStepsPerSecond);
     MOTOR_SetSpeed(Red, RedStepsPerSecond);

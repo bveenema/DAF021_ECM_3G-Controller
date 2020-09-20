@@ -8,7 +8,7 @@
 #define CONFIG_PailDetectionThreshold 1200 // ADC Value (out of 4085)
 
 // Pressure Settings
-#define CONFIG_SkipPressureTest 0 // 0: Use reservoir sizing and leak testing 1: Skip the reservoir sizing and leak testing (uses Small Reservoir Settings)
+#define CONFIG_SkipPressureTest 1 // 0: Use reservoir sizing and leak testing 1: Skip the reservoir sizing and leak testing (uses Small Reservoir Settings)
 
 #define CONFIG_MinValidPressure 500 // mPSI (500)
 #define CONFIG_MaxChargePressure 4000 // mPSI (4000)
