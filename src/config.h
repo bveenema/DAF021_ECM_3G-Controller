@@ -18,18 +18,18 @@
 #define CONFIG_PumpOffPressure_Large 3000 // mPSI (3000)
 #define CONFIG_EmptyPressure 100 // mPSI - the pressure of an empty reservoir
 #define CONFIG_TestPressure 1500 // mPSI - the pressure to which the reservoir is charged for determining size and leak test
-#define CONFIG_LeakPercentage 10 // % - the % amount the pressure can decrease after settling during leak testing
+#define CONFIG_LeakPercentage 50 // % - the % amount the pressure can decrease after settling during leak testing
 #define CONFIG_MaxChargeTime 60000 // mSec - the max amount of time for the reservoir to reach Test Pressure
 #define CONFIG_SmallReservoirTime 5000 // mSec - the threshold time for a small reservoir (< SmallReservoirTime = Small Reservoir, > SmallReservoirTime = Large Reservoir)
 #define CONFIG_SettleTime 2000 // mSec - the amount of time after the reservoir reaches the test pressure to settle
-#define CONFIG_LeakTestTime 10000 // mSec - the total Leak Test time (pressure for leaks after Settle Time)
+#define CONFIG_LeakTestTime 5000 // mSec - the total Leak Test time (pressure for leaks after Settle Time)
 
 // Volume Settings
-#define CONFIG_MilliCubicInchesPerRevolution 1210 // mCu-in/Rev
+#define CONFIG_MilliCubicInchesPerRevolution 1000 // mCu-in/Rev
 #define CONFIG_SuckBackVolume 50 // mGallons
 #define CONFIG_ShortShotVolume 50 // mGallons
 #define CONFIG_FlushFirstBolusVolume 1200 // mGallons
-#define CONFIG_FlushFinalBolusVolume 1200 // mGallons
+#define CONFIG_FlushFinalBolusVolume 600 // mGallons
 #define CONFIG_FlushForwardVolume 14 // mGallons
 #define CONFIG_FlushBackwardVolume 10 // mGallons
 

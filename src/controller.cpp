@@ -299,8 +299,6 @@ void state_FLUSH_PURGE()
             FirstFlush = true;
             do_controller = state_END_CYCLE;
         }
-        
-        
     }
 
     // Moniter Early Cancel Inputs
