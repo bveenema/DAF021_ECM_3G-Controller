@@ -139,6 +139,7 @@ void state_MIX()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus != ES_None)
     {
+        Serial.print("/n Error While Mixing - NOT Position");
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
     }  
@@ -235,7 +236,7 @@ void state_KEEP_OPEN()
 	{
         // Signal Start of Cycle
         // CHIME_StartStop.setStatus(Active);
-		Serial.println("\nSHORT SHOT\n");
+		Serial.println("\nKEEP OPEN\n");
 
         SetupMotors(FORWARD, CONFIG_KeepOpenVolume, CONFIG_KeepOpenRate, Settings.Ratio);
 
@@ -401,7 +402,7 @@ void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, 
 
     Serial.printlnf("Total Revs: %d, Blue Revs: %d, Red Revs: %d", TotalRevs, RevsBlue, RevsRed);
 
-    SetupMotors(Direction, RevsRed, RevsBlue, Rate, Ratio);
+    SetupMotors(Direction, RevsBlue, RevsRed, Rate, Ratio);
 }
 
 void SetupMotors(const Direction Direction, const uint RevsBlue, const uint RevsRed, const uint Rate,  const uint Ratio)
