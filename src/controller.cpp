@@ -139,7 +139,7 @@ void state_MIX()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus != ES_None)
     {
-        Serial.print("/n Error While Mixing - NOT Position");
+        Serial.print("\n Error While Mixing - NOT Position");
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
     }  
@@ -147,6 +147,7 @@ void state_MIX()
     // Exit State Clean-up
 	if(do_controller != state_MIX)
     {
+        Serial.printlnf("\n Completed Mixing");
         CHIME_StartStop.setStatus(Active);
         START_STATE = true;
     }	
