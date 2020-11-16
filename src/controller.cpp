@@ -28,6 +28,7 @@ enum ErrorStatus
     ES_Pail,
     ES_Remote,
 };
+void PrintErrorCause(ErrorStatus e);
 
 // Utility Functions
 void SetupMotors(const Direction Direction, const uint Volume, const uint Rate, const uint Ratio); // Calls below setup motors, used for non-mix
@@ -139,7 +140,7 @@ void state_MIX()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus != ES_None)
     {
-        Serial.print("\n Error While Mixing - NOT Position");
+        PrintErrorCause(EStatus);
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
     }  
@@ -180,6 +181,7 @@ void state_SUCK_BACK()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus == ES_Remote || EStatus == ES_Pail || EStatus == ES_Pressure)
     {
+        PrintErrorCause(EStatus);
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
     }
@@ -220,6 +222,7 @@ void state_SHORT_SHOT()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus == ES_Remote || EStatus == ES_Pail || EStatus == ES_Pressure)
     {
+        PrintErrorCause(EStatus);
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
     }
@@ -258,6 +261,7 @@ void state_KEEP_OPEN()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus != ES_None)
     {
+        PrintErrorCause(EStatus);
         MOTOR_StopAllMotors(); 
         do_controller = state_END_CYCLE;
     }
@@ -307,6 +311,7 @@ void state_FLUSH_PURGE()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus == ES_Remote || EStatus == ES_Pail)
     {
+        PrintErrorCause(EStatus);
         MOTOR_StopAllMotors();
         FirstFlush = true;
         do_controller = state_END_CYCLE;
@@ -373,6 +378,7 @@ void state_FLUSH_BACK_AND_FORTH()
     ErrorStatus EStatus = CheckErrors();
     if(EStatus == ES_Remote || EStatus == ES_Pail)
     {
+        PrintErrorCause(EStatus);
         MOTOR_StopAllMotors();
         CycleCounter = 0;
         dir = 1;
@@ -413,6 +419,10 @@ void SetupMotors(const Direction Direction, const uint RevsBlue, const uint Revs
     Wire.write(Motor_EN_Reg);
     Wire.write(0b00000111); // Motor_EN_Reg - Enable all 3 motors
     Wire.endTransmission();
+
+    // Set Acceleration
+    MOTOR_SetAcceleration(Blue, CONFIG_BlueMotorAcceleration);
+    MOTOR_SetAcceleration(Red, CONFIG_RedMotorAcceleration);
     
     // Set Directions
     MOTOR_SetDirection(Blue, Direction);
@@ -494,4 +504,27 @@ ErrorStatus CheckErrors()
         
 
     return ES_None;
+}
+
+void PrintErrorCause(ErrorStatus e)
+{
+    Serial.print("\n Error While Running - NOT Position - ");
+    switch (e) 
+    {
+        case ES_Pressure:
+            Serial.println("Pressure");
+            break;
+
+        case ES_Liquid:
+            Serial.println("Liquid");
+            break;
+
+        case ES_Pail:
+            Serial.println("Pail");
+            break;
+
+        case ES_Remote:
+            Serial.println("Remote");
+            break;
+    }
 }
