@@ -425,11 +425,15 @@ void SetupMotors(const Direction Direction, const uint RevsBlue, const uint Revs
 
     // Set Acceleration
     MOTOR_SetAcceleration(Blue, CONFIG_BlueMotorAcceleration);
+    delay(1);
     MOTOR_SetAcceleration(Red, CONFIG_RedMotorAcceleration);
+    delay(1);
     
     // Set Directions
     MOTOR_SetDirection(Blue, Direction);
+    delay(1);
     MOTOR_SetDirection(Red, Direction);
+    delay(1);
 
     // Set Steps
     /// Steps = Revolutions * Steps/Revolution
@@ -439,7 +443,9 @@ void SetupMotors(const Direction Direction, const uint RevsBlue, const uint Revs
     Serial.printlnf("Blue Steps: %d, Red Steps: %d", BlueSteps, RedSteps);
 
     MOTOR_SetTarget(Blue, BlueSteps);
+    delay(1);
     MOTOR_SetTarget(Red, RedSteps);
+    delay(1);
 
     // Set Speeds
     /// Steps/Sec = mGPM * Cu-in/gal * Steps/Rev / mCu-in/Rev / 60
@@ -450,13 +456,16 @@ void SetupMotors(const Direction Direction, const uint RevsBlue, const uint Revs
     Serial.printlnf("Total Steps/sec: %d,  Blue Steps/Sec: %d, Red Steps/Sec: %d", TotalStepsPerSecond, BlueStepsPerSecond, RedStepsPerSecond);
 
     MOTOR_SetSpeed(Blue, BlueStepsPerSecond);
+    delay(1);
     MOTOR_SetSpeed(Red, RedStepsPerSecond);
+    delay(1);
 
     // Move Motors
     Wire.beginTransmission(4);
     Wire.write(Motor_MOVE_Reg);
     Wire.write(0b00000011);
     Wire.endTransmission();
+    delay(5);
 }
 
 ErrorStatus CheckErrors()
