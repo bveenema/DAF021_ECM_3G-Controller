@@ -58,8 +58,11 @@ void state_IDLE()
     PressType input = Remote.getStatus();
 
     // If settings have not been received, do nothing
-    if(Settings.valid == false) return;
-
+    if(Settings.valid == false) 
+    {
+        if(input != None) Serial.println("No Valid Settings");
+        return;
+    }
     // Check if Keep Open should run
     if(FirstMix && millis() - LastRunTime > CONFIG_KeepOpenInterval)
         do_controller = state_KEEP_OPEN;
