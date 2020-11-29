@@ -483,7 +483,7 @@ ErrorStatus CheckErrors()
         return ES_Pail;
     }
         
-
+    #if BoardOnlyMode == 0
     if(PressureManager.charged() == 0)
     {
         if(LastError != ES_Pressure)
@@ -493,6 +493,7 @@ ErrorStatus CheckErrors()
         }
         return ES_Pressure;
     }
+    #endif
         
 
     if(LiquidSensor_Blue.hasLiquid() == 0 || LiquidSensor_Red.hasLiquid() == 0)

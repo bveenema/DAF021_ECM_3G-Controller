@@ -56,4 +56,7 @@
 // Conversions
 #define CubicInchesPerGallon 231 // Cubic Inches to Gallons
 
+// Board Only Mode - Used for standalone board testing
+#define BoardOnlyMode 1 // 0: Board is running as fully functional system 1: Board is not connected to real devices
+
 #endif
